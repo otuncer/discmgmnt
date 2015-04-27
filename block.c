@@ -6,9 +6,10 @@
 #include <linux/string.h>
 #endif
 
-void block_initialize(char* blocks_partition_address){
+void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr){
   
-  blocks = (block_t*)blocks_partition_address;
+  blocks = (block_t*)blocks_ptr;
+  block_bitmap = bitmap;
   uint16_t i;
   for(i=0;i<NUM_BLOCKS;i++){
     strcpy(blocks[i].data,"");
@@ -32,7 +33,7 @@ block_t* block_get_pointer(uint16_t block_index){
   return &blocks[block_index];
 }
 
-uint16_t block_get_free_index(){
+int block_get_free_index(){
   uint16_t i;
   for(i=0;i<NUM_BLOCKS;i++){
     if(!block_check_bitmap(i)){

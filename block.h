@@ -23,7 +23,7 @@ typedef union _block_t{
 /* Block Bitmap Array 
  * A single bit indicates whether the block is occupied 
  * */
-uint8_t block_bitmap[NUM_BLOCKS/8]; // Divide by X for an uintX_t type
+uint8_t* block_bitmap;
 
 block_t* blocks;
 
@@ -33,7 +33,7 @@ block_t* blocks;
 /*
  * Initialize ramdisk block partition and the bitmap array
  * */
-void block_initialize(char*);
+void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr);
 
 /*
  * Returns:
@@ -59,6 +59,6 @@ void block_clear_bitmap(uint16_t);
  *  Index of a free ramdisk block
  *  -1 if no free blocks exist
  * */
-uint16_t block_get_free_index(void);
+int block_get_free_index(void);
 
 #endif
