@@ -6,6 +6,7 @@
 #include "block.h"
 
 #ifdef DEBUG
+#include <stdbool.h>
 #include <stdint.h>
 #else
 #include <linux/types.h>
@@ -16,7 +17,7 @@
 typedef struct _inode_t{
 	char type[TYPE_MEMBER_SIZE];
 	uint32_t size; 
-	uint16_t location[NUM_BLOCK_PTRS];
+	block_t* location[NUM_BLOCK_PTRS];
 }inode_t;
 
 extern inode_t* inode_head;
@@ -77,10 +78,11 @@ int inode_read_bytes(uint16_t file_inode, char* source_address, int num_bytes, u
  * */
 int inode_write_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
 /* TODO inode get block
+ * Adds the block if the block is new
  * Returns:
- *  -1 in case of error
- *  target block index
+ *  NULL in case of error
+ *  target block pointer
  * */
-int inode_get_block(uint16_t file_inode, uint16_t block_offset);
+block_t* inode_get_block(uint16_t inode, uint16_t block_offset);
 
 #endif
