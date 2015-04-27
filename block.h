@@ -18,7 +18,7 @@
 typedef union _block_t{
   char data[BLOCK_SIZE];
   directory_entry_t directories[BLOCK_SIZE/(FILENAME_SIZE+2)];
-  uint16_t block_index[BLOCK_SIZE/4];
+  union _block_t* block_ptr[BLOCK_SIZE/4];
 }block_t;
 
 /* Block Bitmap Array 
