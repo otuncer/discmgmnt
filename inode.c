@@ -8,6 +8,12 @@
 #include <linux/types.h>
 #endif
 
+/* TODO inode get next location
+ * returns the next available location index in the given inode
+ * returns -1 if there is none
+ * */
+static int inode_entry_get_next(uint16_t inode);
+
 /*
  * Set type="",
  * size=0
