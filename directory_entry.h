@@ -1,6 +1,8 @@
 #ifndef DIRENTRY_H
 #define DIRENTRY_H
 
+#include "constants.h"
+
 #ifdef DEBUG
 #include <stdint.h>
 #else

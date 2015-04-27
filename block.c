@@ -6,10 +6,20 @@
 #include <linux/string.h>
 #endif
 
+/*
+ * Set/Reset the indicator bit for a newly allocated block
+ * */
+static void block_set_bitmap(uint16_t);
+static void block_clear_bitmap(uint16_t);
+/*
+ * Returns whether the given block is available
+ * */ 
+static uint8_t block_is_free(uint16_t);
+
 void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr){
   
   blocks = (block_t*)blocks_ptr;
-  block_bitmap = bitmap;
+  block_bitmap = bitmap_ptr;
   uint16_t i;
   for(i=0;i<NUM_BLOCKS;i++){
     strcpy(blocks[i].data,"");
@@ -25,7 +35,7 @@ void block_clear_bitmap(uint16_t block_index){
   block_bitmap[block_index/8] &= ~(1 << (block_index%8));
 }
 
-uint8_t block_check_bitmap(uint16_t block_index){
+uint8_t block_is_free(uint16_t block_index){
   return ((block_bitmap[block_index/8] & (1<<(block_index%8))) != 0);
 }
 

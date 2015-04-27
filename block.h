@@ -23,9 +23,9 @@ typedef union _block_t{
 /* Block Bitmap Array 
  * A single bit indicates whether the block is occupied 
  * */
-uint8_t* block_bitmap;
+extern uint8_t* block_bitmap;
 
-block_t* blocks;
+extern block_t* blocks;
 
 /*************************/
 /** FUNCTION PROTOTYPES **/
@@ -37,22 +37,9 @@ void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr);
 
 /*
  * Returns:
- *  0: (blocks[index] is occupied)
- *  1: (blocks[index] is free )
- * */ 
-uint8_t block_check_bitmap(uint16_t);
-
-/*
- * Returns:
- *  A pointer to a newly allocated ramdisk block
+ *  A pointer to a ramdisk block
  * */ 
 block_t* block_get_pointer(uint16_t);
-
-/*
- * Set/Reset the indicator bit for a newly allocated block
- * */
-void block_set_bitmap(uint16_t);
-void block_clear_bitmap(uint16_t);
 
 /*
  * Returns:
@@ -60,5 +47,11 @@ void block_clear_bitmap(uint16_t);
  *  -1 if no free blocks exist
  * */
 int block_get_free_index(void);
+
+/*  TODO : remove block
+ *  de-allocates the given block
+ * */
+void block_remove(uint16_t);
+ 
 
 #endif

@@ -5,12 +5,12 @@
 #include <string.h>
 #else
 #include <linux/string.h>
+#include <linux/types.h>
 #endif
 
 /*
  * Set type="",
  * size=0
- * location=(nullified blocks)
  * */
 void inode_initialize(char* inode_partition){
   int i,j;
@@ -19,9 +19,6 @@ void inode_initialize(char* inode_partition){
   for(i=0; i<NUM_INODES; i++){
     strcpy(inode_head[i].type,"");
     inode_head[i].size=0;
-    for(j=0;j<NUM_BLOCK_PTRS;j++){
-      inode_head[i].location[j]=0;
-    }
   }
   // Initialize root 
   strcpy(inode_head[0].type,"dir");
@@ -29,7 +26,6 @@ void inode_initialize(char* inode_partition){
 }
 
 uint16_t inode_get_free_index(void){
-  
   uint16_t i;
   for(i=0; i<NUM_INODES; i++){
     if(!strcmp(inode_head[i].type,""))
@@ -45,7 +41,8 @@ inode_t* inode_get_pointer(uint16_t index){
     return &inode_head[index];
 }
 
-uint16_t inode_add_directory_entry(uint16_t inode_parent_index, char* filename, uint16_t inode_child_index){
+/*
+uint16_t inode_add_directory_entry(uint16_t inode_index, char* dirName){
   inode_t* parent_node = inode_get_pointer(inode_parent_index);
   
   // Create a new directory
@@ -63,4 +60,4 @@ uint16_t inode_add_directory_entry(uint16_t inode_parent_index, char* filename, 
   block_get_pointer(parent_node->location[location_indexer])->directories[block_indexer] = new_dir;
 
   parent_node->size += sizeof(directory_entry_t);
-}
+}*/

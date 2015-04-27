@@ -11,18 +11,15 @@
 #include <linux/types.h>
 #endif
 
-/* The following members are in bytes */
-#define TYPE_MEMBER_SIZE 4
-#define FILENAME_SIZE 14
+#define TYPE_MEMBER_SIZE 4 //in bytes
 
 typedef struct _inode_t{
-	
 	char type[TYPE_MEMBER_SIZE];
 	uint32_t size; 
-	uint16_t location[NUM_BLOCK_PTRS];
+	block_t* location[NUM_BLOCK_PTRS];
 }inode_t;
 
-inode_t* inode_head;
+extern inode_t* inode_head;
 
 /*******************************/
 /** INODE Function Prototypes **/
@@ -30,7 +27,6 @@ inode_t* inode_head;
 /*
  * Set type="",
  * size=0
- * location=(nullified blocks)
  * */
 void inode_initialize(char* inode_partition);
 /*
@@ -45,11 +41,27 @@ inode_t* inode_get_pointer(uint16_t index);
  *  0 if no empty inode exists (0th node is always used by root)
  * */
 uint16_t inode_get_free_index(void);
-/*
- * Add a directory entry to a given inode
+/* TODO inode add entry
+ * Add an entry to a given inode and initialize it
  * Returns:
- *   number of bytes added
+ *   child inode index
+ *   0 if unsuccessful
  * */
-uint16_t inode_add_directory_entry(uint16_t, char*, uint16_t);
+uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile);
+/* TODO inode find entry
+ * finds and returns an entry from the inode of a folder
+ * Returns:
+ *   found inode index
+ *   0 if unsuccessful
+ * */
+uint16_t inode_find_entry(uint16_t parent_inode, char* name);
+/* TODO inode remove entry
+ * removes the given entry 
+ * Shifts the existing enries to keep the entry continuity
+ * Returns:
+ *   1 if successful
+ *   0 if unsuccessful
+ * */
+uint16_t inode_remove_entry(uint16_t parent_inode, char* name);
 
 #endif
