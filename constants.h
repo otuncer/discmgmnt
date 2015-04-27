@@ -3,7 +3,7 @@
 
 //It's the user responsibility to use matching constants
 
-#define PARTITION_SIZE 2*1024*1024
+#define PARTITION_SIZE 2*1024*1024//must be <=4GB
 #define NUM_BLOCKS     8192       //must be a multiple of 8 and <= 2^16
 #define BLOCK_SIZE     256        //in bytes
 
