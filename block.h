@@ -5,6 +5,7 @@
 #include "directory_entry.h"
 
 #ifdef DEBUG
+#include <stdbool.h>
 #include <stdint.h>
 #else
 #include <linux/types.h>
@@ -38,21 +39,24 @@ void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr);
 
 /*
  * Returns:
- *  A pointer to a ramdisk block
- * */ 
-block_t* block_get_pointer(uint16_t);
-
-/*
- * Returns:
- *  Index of a free ramdisk block
- *  -1 if no free blocks exist
+ *  Pointer to a free ramdisk block
+ *  NULL if no free blocks exist
  * */
-int block_get_free_index(void);
+block_t* block_get_free(void);
 
 /*  
  * Set the block with a given index to be free
  * */
-void block_remove(uint16_t);
+void block_remove(block_t*);
  
+/*
+ * Set/Reset the indicator bit for a newly allocated block
+ * */
+static inline void block_set_bitmap(uint16_t);
+static inline void block_clear_bitmap(uint16_t);
+
+static inline bool block_is_free(uint16_t);
+static inline uint16_t block_addr_to_index(block_t*);
+static inline block_t* block_index_to_addr(uint16_t);
 
 #endif
