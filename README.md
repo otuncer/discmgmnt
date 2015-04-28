@@ -1,3 +1,4 @@
 CS552 - Operating Systems
 
-DISCOS
+DISCOS Assignment
+
