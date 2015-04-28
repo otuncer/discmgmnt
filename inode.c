@@ -1,7 +1,9 @@
 #include "inode.h"
 
 #ifdef DEBUG
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #else
 #include <linux/string.h>
@@ -41,23 +43,90 @@ inode_t* inode_get_pointer(uint16_t index){
     return &inode_head[index];
 }
 
-/*
-uint16_t inode_add_directory_entry(uint16_t inode_index, char* dirName){
-  inode_t* parent_node = inode_get_pointer(inode_parent_index);
-  
-  // Create a new directory
-  directory_entry_t new_dir;
-  strcpy(new_dir.filename,filename);
-  new_dir.index_node_number;
-  
-  uint8_t location_indexer = (parent_node->size)/(BLOCK_SIZE); // index into the location table
-  uint8_t block_indexer = (parent_node->size % BLOCK_SIZE)/(sizeof(directory_entry_t)); // index into the block
-  
-  if(block_indexer==0){//need to allocate a new bloack
-    parent_node->location[location_indexer]=block_get_free_index();
+block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
+  //find whether adding a new block 
+  uint16_t num_full_blocks = inode_head[inode].size / 256;
+  bool adding = (block_offset >= num_full_blocks);
+  block_t* block_ptr;
+  if(adding){
+    block_ptr = block_get_free();
+    if(block_ptr == NULL){ // no available block
+      return NULL;
+    }
   }
-  
-  block_get_pointer(parent_node->location[location_indexer])->directories[block_indexer] = new_dir;
+  //find the corresponding location pointer in the inode
+  uint16_t ptrs_per_blk = (BLOCK_SIZE/4);
+  block_t** base_loc = inode_head[inode].location;
+  if(block_offset < NUM_DIRECT_PTRS){ // direct
+    if(adding){
+      base_loc[block_offset] = block_ptr;
+    } else {
+      block_ptr = base_loc[block_offset];
+    }
+  }else if(block_offset < NUM_DIRECT_PTRS 
+                          + NUM_S_INDIRECT_PTRS * ptrs_per_blk) {
+                            //single indirect
+    //remove direct ptr offsets
+    block_offset -= NUM_DIRECT_PTRS;
+    base_loc = &(base_loc[NUM_DIRECT_PTRS]);
+    uint16_t s_index = block_offset / ptrs_per_blk;
+    uint16_t s_offset = block_offset % ptrs_per_blk;
 
-  parent_node->size += sizeof(directory_entry_t);
-}*/
+    if(!adding){
+      block_ptr = base_loc[s_index]->block_ptr[s_offset];
+    } else if(s_offset != 0) { //adding
+      base_loc[s_index]->block_ptr[s_offset] = block_ptr;
+    } else { //creating a new singly indirect block
+      block_t* s_ptr = block_get_free();
+      if(s_ptr == NULL){ // no available block
+        block_remove(block_ptr);
+        return NULL;
+      } else {
+        base_loc[s_index] = s_ptr;
+        base_loc[s_index]->block_ptr[s_offset] = block_ptr;
+      }
+    }
+  }else if(block_offset < NUM_DIRECT_PTRS 
+                        + NUM_S_INDIRECT_PTRS * ptrs_per_blk
+                        + NUM_D_INDIRECT_PTRS * ptrs_per_blk * ptrs_per_blk){
+                          //double indirect
+    //remove direct & single indirect ptr offsets
+    block_offset -= (NUM_DIRECT_PTRS + NUM_S_INDIRECT_PTRS * ptrs_per_blk);
+    base_loc = &(base_loc[NUM_DIRECT_PTRS + NUM_S_INDIRECT_PTRS]);
+    uint16_t d_index = block_offset / (ptrs_per_blk * ptrs_per_blk);
+    uint16_t d_offset = (block_offset % (ptrs_per_blk * ptrs_per_blk)) / ptrs_per_blk;
+    uint16_t s_offset = block_offset % ptrs_per_blk;
+
+    if(!adding){
+      block_ptr = base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset];
+    } else if(s_offset != 0){ //adding
+      base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset] = block_ptr;
+    } else if(d_offset != 0 && s_offset == 0){ //new single indirect pointer
+      block_t* s_ptr = block_get_free();
+      if(s_ptr == NULL){ // no available block
+        block_remove(block_ptr);
+        return NULL;
+      } else {
+        base_loc[d_index]->block_ptr[d_offset] = s_ptr;
+        base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset] = block_ptr;
+      }
+    } else { //new double pointer
+      block_t* d_ptr = block_get_free();
+      block_t* s_ptr = block_get_free();
+      if(s_ptr == NULL){//no available block
+        if(d_ptr != NULL){
+          block_remove(d_ptr);
+        }
+        block_remove(block_ptr);
+        return NULL;
+      } else {
+        base_loc[d_index] = d_ptr;
+        base_loc[d_index]->block_ptr[d_offset] = s_ptr;
+        base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset] = block_ptr;
+      }
+    }
+  } else { //outside block boundaries
+    return NULL;
+  }
+  return block_ptr;
+}
