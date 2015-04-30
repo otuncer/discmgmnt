@@ -64,5 +64,23 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name);
  *   0 if unsuccessful
  * */
 uint16_t inode_remove_entry(uint16_t parent_inode, char* name);
+/* TODO inode read bytes
+ * Returns:
+ *  -1 in case of error
+ *  number of bytes read
+ * */
+int inode_read_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
+/* TODO inode write bytes
+ * Returns:
+ *  -1 in case of error
+ *  number of bytes written
+ * */
+int inode_write_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
+/* TODO inode get block
+ * Returns:
+ *  -1 in case of error
+ *  target block index
+ * */
+int inode_get_block(uint16_t file_inode, uint16_t block_offset);
 
 #endif
