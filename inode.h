@@ -42,8 +42,7 @@ inode_t* inode_get_pointer(uint16_t index);
  *  0 if no empty inode exists (0th node is always used by root)
  * */
 uint16_t inode_get_free_index(void);
-/* TODO inode add entry
- * Add an entry to a given inode and initialize it
+/* Add an entry to a given inode and initialize it
  * Cannot add entry if the name already exists.
  * Returns:
  *   child inode index
