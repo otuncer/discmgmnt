@@ -46,10 +46,15 @@ block_t* block_get_pointer(uint16_t block_index){
 int block_get_free_index(){
   uint16_t i;
   for(i=0;i<NUM_BLOCKS;i++){
-    if(!block_check_bitmap(i)){
+    if(!block_is_free(i)){
       block_set_bitmap(i);
       return i;
     }
   }
   return -1;
+}
+
+void block_remove(uint16_t block_index){
+  memset(block_get_pointer(block_index),0,BLOCK_SIZE); // Ozan: We can remove that if all the block readings are based on size
+  block_clear_bitmap(block_index);
 }
