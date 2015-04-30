@@ -65,7 +65,7 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   if(target_block==NULL) return 0; // Could not a allocate block
   
   // Add newly created entry to the parent node
-  target_block[in_block_offset] = new_dir;
+  target_block->directories[in_block_offset] = new_dir;
   parent_ptr->size += sizeof(directory_entry_t);
   
   return child_node_index;
