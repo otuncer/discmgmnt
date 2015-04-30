@@ -16,7 +16,7 @@
 typedef struct _inode_t{
 	char type[TYPE_MEMBER_SIZE];
 	uint32_t size; 
-	block_t* location[NUM_BLOCK_PTRS];
+	uint16_t location[NUM_BLOCK_PTRS];
 }inode_t;
 
 extern inode_t* inode_head;
