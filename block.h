@@ -48,8 +48,8 @@ block_t* block_get_pointer(uint16_t);
  * */
 int block_get_free_index(void);
 
-/*  TODO : remove block
- *  de-allocates the given block
+/*  
+ * Set the block with a given index to be free
  * */
 void block_remove(uint16_t);
  
