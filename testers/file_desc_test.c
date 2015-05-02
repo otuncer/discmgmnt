@@ -1,5 +1,3 @@
-#define DEBUG
-
 #include <assert.h>
 #include <stdio.h>
 #include "../file_desc_table.h"

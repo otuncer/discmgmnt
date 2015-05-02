@@ -8,6 +8,14 @@ else
   base=""
 fi
 
-gcc ${base}testers/file_desc_test.c ${base}file_desc_table.c
+gcc -DDEBUG ${base}testers/file_desc_test.c ${base}file_desc_table.c
+./a.out
+rm a.out
+
+gcc -DDEBUG ${base}testers/block_test.c ${base}block.c
+./a.out
+rm a.out
+
+gcc -DDEBUG ${base}testers/inode_test.c ${base}inode.c ${base}block.c
 ./a.out
 rm a.out
