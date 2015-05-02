@@ -21,7 +21,6 @@ typedef union _block_t{
   directory_entry_t directories[BLOCK_SIZE/(FILENAME_SIZE+2)];
   union _block_t* block_ptr[BLOCK_SIZE/4];
 }block_t;
-} block_t;
 
 /* Block Bitmap Array 
  * A single bit indicates whether the block is occupied 
