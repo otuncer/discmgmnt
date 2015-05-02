@@ -74,9 +74,10 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
 }
 
 block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
-  //find whether adding a new block 
-  uint16_t num_full_blocks = inode_head[inode].size / 256;
-  bool adding = (block_offset >= num_full_blocks);
+  //find whether adding a new block
+  uint16_t num_used_blocks = inode_head[inode].size / 256
+                            + ((inode_head[inode].size % 256) != 0);
+  bool adding = (block_offset >= num_used_blocks);
   block_t* block_ptr;
   if(adding){
     block_ptr = block_get_free();
