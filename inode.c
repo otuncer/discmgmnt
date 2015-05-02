@@ -161,6 +161,44 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
   return block_ptr;
 }
 
+bool inode_remove_entry(uint16_t parent_inode, char* name){
+  uint16_t entry_index;
+  uint16_t child_inode;
+  
+  //check entry existence
+  if((child_inode = inode_find_entry(parent_inode, name, &entry_index)) == 0){
+    return false;
+  }
+  
+  //free inode
+  inode_head[child_inode].type[0] = '\0';
+  
+  //shift all entries back
+  inode_t* parent_ptr = inode_get_pointer(parent_inode);
+  uint16_t num_entries = (parent_ptr->size)/sizeof(directory_entry_t);
+  uint16_t entry_per_block = BLOCK_SIZE/sizeof(directory_entry_t);
+  block_t* dest_blk = inode_get_block(parent_inode, 
+                                     entry_index / entry_per_block);
+  block_t* src_blk = dest_blk;
+  uint16_t it;
+  for(it = entry_index; it < num_entries - 1; it++){
+    if((it+1) % entry_per_block == 0){
+      src_blk = inode_get_block(parent_inode, (it+1) / entry_per_block);
+    }
+    dest_blk->directories[it%entry_per_block] = 
+                                  src_blk->directories[(it+1)%entry_per_block];
+    dest_blk = src_blk;
+  }
+  //reduce parent size
+  parent_ptr->size -= sizeof(directory_entry_t);
+  
+  //delete last block if it is not being used
+  if((it+1) % entry_per_block == 0){
+    block_remove(src_blk);
+  }
+  return true;
+}
+
 uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryIndex){
    
   inode_t* parent_ptr = inode_get_pointer(parent_inode);
@@ -184,7 +222,7 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
     }
      
     if(!strcmp(cur_block_ptr->directories[i%num_entry_per_block].filename, name)){ // check if filename matches
-      entryIndex = i;
+      *entryIndex = i;
       return cur_block_ptr->directories[i%num_entry_per_block].index_node_number;
     }
   }

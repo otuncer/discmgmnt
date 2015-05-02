@@ -55,14 +55,13 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile);
  *   0 if unsuccessful
  * */
 uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryIndex);
-/* TODO remove entry
- * removes the given entry 
+/* removes the given entry 
  * Shifts the existing enries to keep the entry continuity
  * Returns:
  *   1 if successful
  *   0 if unsuccessful
  * */
-uint16_t inode_remove_entry(uint16_t parent_inode, char* name);
+bool inode_remove_entry(uint16_t parent_inode, char* name);
 /* TODO inode read bytes
  * Returns:
  *  -1 in case of error
