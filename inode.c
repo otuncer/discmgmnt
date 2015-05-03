@@ -160,3 +160,33 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
   }
   return block_ptr;
 }
+
+uint16_t inode_find_entry(uint16_t parent_inode, char* name){
+   
+  inode_t* parent_ptr = inode_get_pointer(parent_inode);
+   
+  // Check if directory or a file
+  if(!strcmp(parent_ptr->type, "dir"))
+    return 0;
+     
+  // Go through the location field of the inode to search entries
+  uint16_t num_dir_entries = (parent_ptr->size)/sizeof(directory_entry_t);
+  uint16_t num_entry_per_block = BLOCK_SIZE/sizeof(directory_entry_t);
+  uint16_t i=0;
+  uint16_t cur_block_index=0;
+  block_t* cur_block_ptr;
+   
+  for(i=0;i<num_dir_entries;i++){
+     
+    if((i%num_entry_per_block)==0){ // Move on to the next block?
+      cur_block_ptr = inode_get_block(parent_inode, cur_block_index);
+      cur_block_index++;
+    }
+     
+    if(!strcmp(cur_block_ptr->directories[i%num_entry_per_block].filename, name)){ // check if filename matches
+      return cur_block_ptr->directories[i%num_entry_per_block].index_node_number;
+    }
+  }
+   
+  return 0; // No matching filename found within the entries of this inode
+}
