@@ -49,15 +49,13 @@ uint16_t inode_get_free_index(void);
  *   0 if unsuccessful
  * */
 uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile);
-/* TODO inode find entry
- * finds and returns an entry from the inode of a folder
+/* finds and returns an entry from the inode of a folder
  * Returns:
  *   found inode index
  *   0 if unsuccessful
  * */
 uint16_t inode_find_entry(uint16_t parent_inode, char* name);
-/* TODO inode remove entry
- * removes the given entry 
+/* removes the given entry 
  * Shifts the existing enries to keep the entry continuity
  * Returns:
  *   1 if successful
@@ -76,8 +74,7 @@ int inode_read_bytes(uint16_t file_inode, char* source_address, int num_bytes, u
  *  number of bytes written
  * */
 int inode_write_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
-/* TODO inode get block
- * Adds the block if the block is new
+/* Adds the block if the block is new
  * Returns:
  *  NULL in case of error
  *  target block pointer
