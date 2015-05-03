@@ -10,8 +10,20 @@ inode_t* inode_head;
 uint8_t* block_bitmap;
 block_t* blocks;
 
+/****************/
+/** UNIT TESTS **/
+/****************/
+void get_block_test(void);
+
 int main()
-{
+{  
+  
+  get_block_test();
+  return 0;
+}
+
+void get_block_test(){
+
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
@@ -60,5 +72,4 @@ int main()
   
   printf("inode_get_block test passed.\n");
   
-  return 0;
 }
