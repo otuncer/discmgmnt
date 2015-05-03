@@ -20,8 +20,3 @@ gcc -DDEBUG ${base}testers/inode_test.c ${base}inode.c ${base}block.c
 ./a.out
 rm a.out
 
-# TODO inode add entry test
-
-# TODO inode find entry test
-
-# TODO remove entry test

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,17 +18,17 @@ block_t* blocks;
 /****************/
 void get_block_test(void);
 void add_entry_test(void);
+void remove_entry_test(void);
 
 int main()
-{  
-  
-  //get_block_test();
+{ 
+  get_block_test();
   add_entry_test();
+  remove_entry_test();
   return 0;
 }
 
 void add_entry_test(){
- 
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
@@ -93,7 +94,46 @@ void add_entry_test(){
   assert(inode_find_entry(0,"dummy",&eIndex)==0); // dummy is not an existing entry name
   
   printf("inode_add_entry & inode_find_entry test passed.\n");
+}
+
+void remove_entry_test(){
+  //init blocks
+  uint8_t block_bitmap_[NUM_BLOCKS/8];
+  block_t blocks_[NUM_BLOCKS];
+  block_initialize((char*) blocks_, block_bitmap_);
+  //init inodes
+  inode_t inode_head_[NUM_INODES];
+  inode_initialize((char*) inode_head_);
+  
+  strcpy(inode_head[0].type,"dir");
    
+  uint16_t entries[5];
+  char buffer[10];
+  int i;
+  for(i = 0; i < 5; i++){
+    sprintf(buffer,"%d",i);
+    entries[i] = inode_add_entry(0, buffer, i%2);
+  }
+  assert(inode_head[0].size == sizeof(directory_entry_t)*5);
+  //remove 2
+  sprintf(buffer,"%d",2);
+  assert(inode_remove_entry(0, buffer) == true);
+  assert(inode_head[0].size == sizeof(directory_entry_t)*4);
+  assert(inode_get_free_index() == entries[2]);
+  assert(inode_remove_entry(0, buffer) == false);
+  assert(inode_head[0].size == sizeof(directory_entry_t)*4);
+  //remove others
+  sprintf(buffer,"%d",0);
+  assert(inode_remove_entry(0, buffer) == true);
+  assert(inode_head[0].size == sizeof(directory_entry_t)*3);
+  sprintf(buffer,"%d",1);
+  assert(inode_remove_entry(0, buffer) == true);
+  assert(inode_head[0].size == sizeof(directory_entry_t)*2);
+  sprintf(buffer,"%d",3);
+  assert(inode_remove_entry(0, buffer) == true);
+  assert(inode_head[0].size == sizeof(directory_entry_t)*1);
+  
+  printf("inode_remove_entry test passed.\n");
 }
 
 void get_block_test(){
