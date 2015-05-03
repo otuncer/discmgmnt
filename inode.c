@@ -231,3 +231,72 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
   }
   return 0; // No matching filename found within the entries of this inode
 }
+
+int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
+  
+  // find the number of bytes that can actually be read
+  const int file_size = inode_get_pointer(file_inode)->size;
+  int num_bytes_feasible = ((file_size-f_pos)>=num_bytes) ? num_bytes : (file_size-f_pos);
+  
+  // read bytes into the buffer
+  int i=0;
+  uint32_t block_offset;
+  uint32_t in_block_offset;
+  block_t* cur_block;
+
+  for(i=0;i<num_bytes_feasible;i++){
+
+    // identify target bytes index
+    block_offset = (f_pos+i)/BLOCK_SIZE;
+    in_block_offset = (f_pos+i)%BLOCK_SIZE;
+    cur_block = inode_get_block(file_inode,block_offset);
+    
+    // cannot find the block (not sure if that would occur anyway)
+    if(cur_block == NULL) goto fail;
+    
+    // read fromthe inode block into the buffer
+    buffer[i] = cur_block->data[in_block_offset];
+  }
+  
+  success:
+    return num_bytes_feasible;
+  fail:
+    return -1;
+}
+
+int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
+  
+  // find the number of bytes that can actually be written
+  const int max_size = BLOCK_SIZE*(NUM_DIRECT_PTRS 
+                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16);
+
+  int num_bytes_feasible = ((max_size-f_pos)>=num_bytes) ? num_bytes : (max_size-f_pos);
+  // Ozan: where do you think we should handle the case of not having enough blocks to write from the buffer?
+  
+  // read bytes into the buffer
+  int i=0;
+  uint32_t block_offset;
+  uint32_t in_block_offset;
+  block_t* cur_block;
+
+  for(i=0;i<num_bytes_feasible;i++){
+
+    // identify target bytes index
+    block_offset = (f_pos+i)/BLOCK_SIZE;
+    in_block_offset = (f_pos+i)%BLOCK_SIZE;
+    cur_block = inode_get_block(file_inode,block_offset);
+    
+    // cannot find the block 
+    // Ozan: this part can be modified/removed
+    if(cur_block == NULL) goto fail;
+    
+    // read fromthe inode block into the buffer
+    cur_block->data[in_block_offset]=buffer[i];
+  }
+  
+  success:
+    return num_bytes_feasible;
+  fail:
+    return -1;
+}
