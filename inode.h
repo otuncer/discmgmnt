@@ -54,7 +54,7 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile);
  *   found inode index
  *   0 if unsuccessful
  * */
-uint16_t inode_find_entry(uint16_t parent_inode, char* name);
+uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryIndex);
 /* TODO remove entry
  * removes the given entry 
  * Shifts the existing enries to keep the entry continuity
