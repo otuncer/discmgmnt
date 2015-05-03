@@ -55,7 +55,8 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile);
  *   0 if unsuccessful
  * */
 uint16_t inode_find_entry(uint16_t parent_inode, char* name);
-/* removes the given entry 
+/* TODO remove entry
+ * removes the given entry 
  * Shifts the existing enries to keep the entry continuity
  * Returns:
  *   1 if successful
@@ -67,13 +68,13 @@ uint16_t inode_remove_entry(uint16_t parent_inode, char* name);
  *  -1 in case of error
  *  number of bytes read
  * */
-int inode_read_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
+int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos);
 /* TODO inode write bytes
  * Returns:
  *  -1 in case of error
  *  number of bytes written
  * */
-int inode_write_bytes(uint16_t file_inode, char* source_address, int num_bytes, uint32_t f_pos);
+int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos);
 /* Adds the block if the block is new
  * Returns:
  *  NULL in case of error
