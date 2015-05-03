@@ -52,7 +52,6 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   uint16_t child_node_index = inode_get_free_index();
   if(child_node_index==0) return 0; // Could not allocate inode
   child_node.size=0;
-  (isFile==1) ? (strcpy(child_node.type,"reg")):(strcpy(child_node.type,"dir"));
   
   // Create a new directory
   directory_entry_t new_dir;
@@ -70,6 +69,9 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   target_block->directories[in_block_offset] = new_dir;
   parent_ptr->size += sizeof(directory_entry_t);
   
+  // inode is allocated when the type field is set
+  (isFile==1) ? (strcpy(child_node.type,"reg")):(strcpy(child_node.type,"dir"));
+  inode_head[child_node_index] = child_node;
   return child_node_index;
 }
 
@@ -203,11 +205,11 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
 uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryIndex){
    
   inode_t* parent_ptr = inode_get_pointer(parent_inode);
-   
+
   // Check if directory or a file
-  if(!strcmp(parent_ptr->type, "dir"))
+  if(strcmp(parent_ptr->type, "dir"))
     return 0;
-     
+
   // Go through the location field of the inode to search entries
   uint16_t num_dir_entries = (parent_ptr->size)/sizeof(directory_entry_t);
   uint16_t num_entry_per_block = BLOCK_SIZE/sizeof(directory_entry_t);
