@@ -183,10 +183,10 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
       return false;
     }
   } else { // if file, free all blocks
-    uint16_t i;
+    int32_t i;
     uint16_t num_used_blocks = child_ptr->size / 256
                                 + ((child_ptr->size % 256) != 0);
-    for(i = num_used_blocks; i >= 0; i--){
+    for(i = (int32_t) num_used_blocks - 1; i >= 0; i--){
       block_remove(inode_get_block(child_inode, i));
     }
   }

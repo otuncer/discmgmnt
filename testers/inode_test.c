@@ -23,9 +23,9 @@ void byte_read_write_test(void);
 
 int main()
 { 
-  //get_block_test();
-  //add_entry_test();
-  //remove_entry_test();
+  get_block_test();
+  add_entry_test(); //add & find
+  remove_entry_test();
   byte_read_write_test();
   return 0;
 }
@@ -165,19 +165,48 @@ void remove_entry_test(){
   //init inodes
   inode_t inode_head_[NUM_INODES];
   inode_initialize((char*) inode_head_);
-  
   strcpy(inode_head[0].type,"dir");
-   
+  
   uint16_t entries[5];
   char buffer[10];
+  buffer[1] = '\0';
   int i;
   for(i = 0; i < 5; i++){
     sprintf(buffer,"%d",i);
     entries[i] = inode_add_entry(0, buffer, i%2);
   }
   assert(inode_head[0].size == sizeof(directory_entry_t)*5);
+  
+  //put one directory and one file in '/2'
+  uint16_t inode_2;
+  uint16_t child_file;
+  strcpy(buffer,"2");
+  inode_2 = inode_find_entry(0, buffer, &inode_2);
+  strcpy(buffer,"test_dir");
+  inode_add_entry(inode_2, buffer, 0);
+  strcpy(buffer,"test_file");
+  child_file = inode_add_entry(inode_2, buffer, 1);
+  //write something to file
+  inode_write_bytes(child_file, "dummy_data", 10, 0);
+
+  //attempt to remove parent
+  strcpy(buffer,"2");
+  assert(inode_remove_entry(0, buffer) == false);
+  //remove file
+  strcpy(buffer,"test_file");
+  block_t* first_block = inode_get_block(child_file, 0);
+  assert(inode_remove_entry(inode_2, buffer) == true);
+  //check whether the next empty block is the one just removed
+  assert(block_get_free() == first_block);
+  //attempt to remove directory
+  strcpy(buffer,"2");
+  assert(inode_remove_entry(0, buffer) == false);
+  //remove child directory
+  strcpy(buffer,"test_dir");
+  assert(inode_remove_entry(inode_2, buffer) == true);
+  
   //remove 2
-  sprintf(buffer,"%d",2);
+  strcpy(buffer,"2");
   assert(inode_remove_entry(0, buffer) == true);
   assert(inode_head[0].size == sizeof(directory_entry_t)*4);
   assert(inode_get_free_index() == entries[2]);
