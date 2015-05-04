@@ -39,9 +39,9 @@ void byte_read_write_test(){
   inode_initialize((char*) inode_head_);
   
   // find the number of bytes that can actually be written
-  const int max_size = BLOCK_SIZE*(NUM_DIRECT_PTRS 
-                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
-                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16);
+  const int max_size = BLOCKSIZE*(NUM_DIRECT_PTRS 
+                            + NUM_S_INDIRECT_PTRS * BLOCKSIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCKSIZE * BLOCKSIZE / 16);
   
   // add a file entry to the root
   uint16_t file_index = inode_add_entry(0,"file1",1);
@@ -99,8 +99,8 @@ void add_entry_test(){
    
   //
   const int num_max_inode_blocks = NUM_DIRECT_PTRS
-                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
-                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16;
+                            + NUM_S_INDIRECT_PTRS * BLOCKSIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCKSIZE * BLOCKSIZE / 16;
                             //a total of 4234 blocks, including pointer blocks
    
   char buffer[FILENAME_SIZE];
@@ -142,8 +142,8 @@ void add_entry_test(){
  
   for(i=0;i<NUM_INODES-1;i++){
     sprintf(buffer,"%d",i);
-    block_offset = i/(BLOCK_SIZE/sizeof(directory_entry_t));
-    in_block_offset = i%(BLOCK_SIZE/sizeof(directory_entry_t));
+    block_offset = i/(BLOCKSIZE/sizeof(directory_entry_t));
+    in_block_offset = i%(BLOCKSIZE/sizeof(directory_entry_t));
     //printf("%s,%s -", buffer,inode_get_block(0,block_offset)->directories[in_block_offset].filename);
     assert(strcmp(buffer,inode_get_block(0,block_offset)->directories[in_block_offset].filename)==0);
   }
@@ -237,15 +237,15 @@ void get_block_test(){
   
   // test inode_get_block
   const int num_max_inode_blocks = NUM_DIRECT_PTRS 
-                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
-                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16;
+                            + NUM_S_INDIRECT_PTRS * BLOCKSIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCKSIZE * BLOCKSIZE / 16;
                             //a total of 4234 blocks, including pointer blocks
   block_t* ptrs[NUM_BLOCKS];
   //allocate max number of blocks for single inode
   int i, j;
   for(i = 0 ; i < num_max_inode_blocks; i++ ){
     ptrs[i] = inode_get_block(0, i);
-    inode_head[0].size += BLOCK_SIZE;
+    inode_head[0].size += BLOCKSIZE;
     //check whether NULL
     assert(ptrs[i] != NULL);
     //check whether equals to any previous ptrs

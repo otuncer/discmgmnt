@@ -252,12 +252,12 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
 
 int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
   
-  if(strcmp(inode_get_pointer(file_inode)->type,"reg")) goto fail;
+  //if(strcmp(inode_get_pointer(file_inode)->type,"reg")) goto fail;
   
   // find the number of bytes that can actually be read
   const int file_size = inode_get_pointer(file_inode)->size;
   int num_bytes_feasible = ((file_size-f_pos)>=num_bytes) ? num_bytes : (file_size-f_pos);
-  
+  //printf("INODE: NFB %d\n", num_bytes_feasible);
   // read bytes into the buffer
   int i=0;
   uint32_t block_offset;

@@ -163,6 +163,9 @@ int rd_readdir(int fd, char* buffer){
   //copy directory entry
   inode_read_bytes(file->inode, buffer, FILENAME_SIZE+2, file->f_pos);
   
+  // move f_pos to the next directory entry
+  file->f_pos += sizeof(directory_entry_t);
+  
   return 1;
 }
 
