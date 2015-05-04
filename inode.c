@@ -172,8 +172,6 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   uint16_t entry_index;
   uint16_t child_inode;
   
-  //TODO remove entry cannot remove an open file
-  
   //check entry existence
   if((child_inode = inode_find_entry(parent_inode, name, &entry_index)) == 0){
     return false;

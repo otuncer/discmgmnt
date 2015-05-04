@@ -2,6 +2,7 @@
 #define FILE_DESC_TABLE_H
 
 #ifdef DEBUG
+#include <stdbool.h>
 #include <stdint.h>
 #else
 #include <linux/types.h>
@@ -18,14 +19,17 @@ typedef struct _file_desc
 file_desc* file_desc_table;
 
 //returns fd
-uint16_t add_file_desc(uint16_t inode);
+uint16_t file_add_desc(uint16_t inode);
 
 //returns 0 if fd does not exist
 //returns 1 if successful
 //---bool or int did not compile for some reason
-uint16_t remove_fd(uint16_t fd);
+uint16_t file_remove_fd(uint16_t fd);
 
 //returns NULL if fd is not found
-file_desc* get_fd(uint16_t fd);
+file_desc* file_get_fd(uint16_t fd);
+
+//checks whether the given inode is an open file or directory
+bool file_is_open(uint16_t inode);
 
 #endif
