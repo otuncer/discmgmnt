@@ -45,6 +45,7 @@ int rd_readdir(int fd, char* buffer);
 //Checks whether the given path exists
 //returns child inode index, or -1 if the enry does not exist
 //assigns parent to the parent inode index, or -1 if doesn't exist
-int rd_check_path(char* pathname, int* parent);
+//assigns leaf_name to the leaf file name
+int rd_check_path(char* pathname, int* parent, char* leaf_name);
 
 #endif

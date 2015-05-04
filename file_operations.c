@@ -10,9 +10,17 @@
 #include <linux/types.h>
 #endif
 
-//TODO implement rd_creat
 int rd_creat(char* pathname){
-  return -1;
+  int parent;
+  char child_name[FILENAME_SIZE];
+  int child = rd_check_path(pathname, &parent, child_name);
+  if(child != -1 || parent == -1){
+    return -1;
+  }
+  if(inode_add_entry(parent, child_name, 1) == 0){
+    return -1;
+  }
+  return 0;
 }
 
 //TODO implement rd_mkdir
@@ -55,10 +63,10 @@ int rd_readdir(int fd, char* buffer){
   return -1;
 }
 
-int rd_check_path(char* pathname, int* parent){
+int rd_check_path(char* pathname, int* parent, char* leaf_name){
   *parent = -1;
   int child = 0;
-  char next[14];
+  char next[FILENAME_SIZE];
   char* iter;
   uint16_t dummy;
   
@@ -91,6 +99,7 @@ int rd_check_path(char* pathname, int* parent){
       child = -1;
     }
   }
+  strcpy(leaf_name, next);
   
   return child;
 }
