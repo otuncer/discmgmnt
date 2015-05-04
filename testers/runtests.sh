@@ -16,8 +16,6 @@ gcc -DDEBUG ${base}testers/block_test.c ${base}block.c
 ./a.out
 rm a.out
 
-# TODO extend remove entry test for ...
-#  ...non-empty directory, file blocks, root directory
 gcc -DDEBUG ${base}testers/inode_test.c ${base}inode.c ${base}block.c
 ./a.out
 rm a.out
