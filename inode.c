@@ -168,6 +168,11 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   uint16_t entry_index;
   uint16_t child_inode;
   
+  //TODO remove entry should free file blocks
+  //TODO remove entry cannot remove an open file
+  //TODO remove entry should remove folder only if its empty
+  //TODO remove entry cannot remove root directory
+  
   //check entry existence
   if((child_inode = inode_find_entry(parent_inode, name, &entry_index)) == 0){
     return false;
