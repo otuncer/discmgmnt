@@ -31,7 +31,7 @@ int rd_write(int d, char* buffer, int num_bytes);
 //set file's position identified by file descriptor.
 //returns new position, or the end of the file position if offset > size
 // returns -1 if applied to directory files
-int rd_seek(int fd, int offset);
+int rd_lseek(int fd, int offset);
 
 //remove given file or directory, freeing its memory
 //returns 0 on success or -1 if (1) pathname does not exist, (2) attempt to
