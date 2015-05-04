@@ -172,18 +172,29 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   uint16_t entry_index;
   uint16_t child_inode;
   
-  //TODO remove entry should free file blocks
   //TODO remove entry cannot remove an open file
-  //TODO remove entry should remove folder only if its empty
-  //TODO remove entry cannot remove root directory
   
   //check entry existence
   if((child_inode = inode_find_entry(parent_inode, name, &entry_index)) == 0){
     return false;
   }
+  inode_t* child_ptr = inode_get_pointer(child_inode);
+  //if folder, check if root or non-empty
+  if(strcmp(child_ptr->type, "dir") == 0){
+    if(child_ptr->size != 0 || child_inode == 0){
+      return false;
+    }
+  } else { // if file, free all blocks
+    uint16_t i;
+    uint16_t num_used_blocks = child_ptr->size / 256
+                                + ((child_ptr->size % 256) != 0);
+    for(i = num_used_blocks; i >= 0; i--){
+      block_remove(inode_get_block(child_inode, i));
+    }
+  }
   
   //free inode
-  inode_head[child_inode].type[0] = '\0';
+  child_ptr->type[0] = '\0';
   
   //shift all entries back
   inode_t* parent_ptr = inode_get_pointer(parent_inode);
