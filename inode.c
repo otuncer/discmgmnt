@@ -63,8 +63,8 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   new_dir.index_node_number = child_node_index;
   
   // Find a target block for adding a new entry
-  uint8_t block_offset = (parent_ptr->size)/(BLOCK_SIZE); // index into the location table
-  uint8_t in_block_offset = (parent_ptr->size % BLOCK_SIZE)/(sizeof(directory_entry_t)); // index into the block
+  uint8_t block_offset = (parent_ptr->size)/(BLOCKSIZE); // index into the location table
+  uint8_t in_block_offset = (parent_ptr->size % BLOCKSIZE)/(sizeof(directory_entry_t)); // index into the block
   block_t* target_block = inode_get_block(parent_inode, block_offset);
   
   if(target_block==NULL) return 0; // Could not a allocate block
@@ -92,7 +92,7 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
     }
   }
   //find the corresponding location pointer in the inode
-  uint16_t ptrs_per_blk = (BLOCK_SIZE/4);
+  uint16_t ptrs_per_blk = (BLOCKSIZE/4);
   block_t** base_loc = inode_head[inode].location;
   if(block_offset < NUM_DIRECT_PTRS){ // direct
     if(adding){
@@ -197,7 +197,7 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   //shift all entries back
   inode_t* parent_ptr = inode_get_pointer(parent_inode);
   uint16_t num_entries = (parent_ptr->size)/sizeof(directory_entry_t);
-  uint16_t entry_per_block = BLOCK_SIZE/sizeof(directory_entry_t);
+  uint16_t entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
   block_t* dest_blk = inode_get_block(parent_inode, 
                                      entry_index / entry_per_block);
   block_t* src_blk = dest_blk;
@@ -230,7 +230,7 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
 
   // Go through the location field of the inode to search entries
   uint16_t num_dir_entries = (parent_ptr->size)/sizeof(directory_entry_t);
-  uint16_t num_entry_per_block = BLOCK_SIZE/sizeof(directory_entry_t);
+  uint16_t num_entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
   uint16_t i=0;
   uint16_t cur_block_index=0;
   block_t* cur_block_ptr;
@@ -267,8 +267,8 @@ int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t 
   for(i=0;i<num_bytes_feasible;i++){
 
     // identify target bytes index
-    block_offset = (f_pos+i)/BLOCK_SIZE;
-    in_block_offset = (f_pos+i)%BLOCK_SIZE;
+    block_offset = (f_pos+i)/BLOCKSIZE;
+    in_block_offset = (f_pos+i)%BLOCKSIZE;
     cur_block = inode_get_block(file_inode,block_offset);
     
     // cannot find the block (not sure if that would occur anyway)
@@ -287,9 +287,9 @@ int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t 
 int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
   
   // find the number of bytes that can actually be written
-  const int max_size = BLOCK_SIZE*(NUM_DIRECT_PTRS 
-                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
-                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16);
+  const int max_size = BLOCKSIZE*(NUM_DIRECT_PTRS 
+                            + NUM_S_INDIRECT_PTRS * BLOCKSIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCKSIZE * BLOCKSIZE / 16);
 
   int num_bytes_feasible = ((max_size-f_pos)>=num_bytes) ? num_bytes : (max_size-f_pos);
   
@@ -303,8 +303,8 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
 
     // identify target bytes index
     
-    block_offset = (f_pos+i)/BLOCK_SIZE;
-    in_block_offset = (f_pos+i)%BLOCK_SIZE;
+    block_offset = (f_pos+i)/BLOCKSIZE;
+    in_block_offset = (f_pos+i)%BLOCKSIZE;
     cur_block = inode_get_block(file_inode,block_offset);
     
     // cannot allocate a free block

@@ -6,10 +6,8 @@
 #include <stdint.h>
 #else
 #include <linux/types.h>
+#include <linux/vmalloc.h>
 #endif
-
-//returns next available fd index
-static uint16_t file_find_next_fd();
 
 uint16_t file_add_desc(uint16_t inode)
 {

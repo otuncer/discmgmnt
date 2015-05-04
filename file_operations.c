@@ -76,8 +76,7 @@ int rd_read(int fd, char* buffer, int num_bytes){
   // Update the file position
   target_file_desc->f_pos += num_bytes_read;
   
-  success:
-    return num_bytes_read;
+  return num_bytes_read;
   fail:
     return -1;
 }
@@ -109,8 +108,7 @@ int rd_write(int fd, char* buffer, int num_bytes){
   // Update the file position
   target_file_desc->f_pos += num_bytes_written;
   
-  success:
-    return num_bytes_written;
+  return num_bytes_written;
   fail:
     return -1;
 }
@@ -136,8 +134,7 @@ int rd_lseek(int fd, int offset){
   // Assign new file position 
   target_file_desc->f_pos = (offset > (target_inode_ptr->size)) ? (target_inode_ptr->size) : offset;
   
-  success:
-    return 0;
+  return 0;
   fail:
     return -1;
 }
@@ -170,12 +167,14 @@ int rd_readdir(int fd, char* buffer){
 }
 
 int rd_check_path(char* pathname, int* parent, char* leaf_name){
-  *parent = -1;
-  int child = 0;
+  int child;
   char next[FILENAME_SIZE];
-  next[0] = '\0';
   char* iter;
   uint16_t dummy;
+  
+  *parent = -1;
+  child = 0;
+  next[0] = '\0';
   
   //check root
   if(pathname[0] != '/'){

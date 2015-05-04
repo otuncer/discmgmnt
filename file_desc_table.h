@@ -32,4 +32,7 @@ file_desc* file_get_fd(uint16_t fd);
 //checks whether the given inode is an open file or directory
 bool file_is_open(uint16_t inode);
 
+//returns next available fd index
+static uint16_t file_find_next_fd(void);
+
 #endif

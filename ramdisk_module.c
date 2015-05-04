@@ -7,22 +7,25 @@
 #include <linux/proc_fs.h>
 #include <asm/uaccess.h>
 #include <linux/sched.h>
-#include <linux/interrupt.h>
 #include <linux/wait.h>
 #include <linux/vmalloc.h>
+
+#include "file_operations.h"
 
 #define KILOBYTES 1024
 #define MEGABYTES (KILOBYTES*1024)
 
 MODULE_LICENSE("GPL");
 
-char* ramdisk_mem; // 
-
 /************************/
 /** PROCFS GLOBAL VARS **/
 /************************/
 static struct file_operations pseudo_dev_proc_operations;
 static struct proc_dir_entry *proc_entry;
+
+inode_t* inode_head;
+uint8_t* block_bitmap;
+block_t* blocks;
 
 /************************/
 /***** INIT MODULE ******/
@@ -38,7 +41,7 @@ static int __init initialization_routine(void) {
   }
 
 	/* Allocate RAMDISK memory area */
-	ramdisk_mem = vmalloc(2*MEGABYTES);
+	char* ramdisk_mem = vmalloc(2*MEGABYTES);
 
   proc_entry->proc_fops = &pseudo_dev_proc_operations;
 	

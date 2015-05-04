@@ -17,9 +17,9 @@
 
 /* RAMDISK Block */
 typedef union _block_t{
-  char data[BLOCK_SIZE];
-  directory_entry_t directories[BLOCK_SIZE/(FILENAME_SIZE+2)];
-  union _block_t* block_ptr[BLOCK_SIZE/4];
+  char data[BLOCKSIZE];
+  directory_entry_t directories[BLOCKSIZE/(FILENAME_SIZE+2)];
+  union _block_t* block_ptr[BLOCKSIZE/4];
 }block_t;
 
 /* Block Bitmap Array 
@@ -49,15 +49,25 @@ block_t* block_get_free(void);
  * Set the block with a given index to be free
  * */
 void block_remove(block_t*);
- 
-/*
- * Set/Reset the indicator bit for a newly allocated block
- * */
-static inline void block_set_bitmap(uint16_t);
-static inline void block_clear_bitmap(uint16_t);
 
-static inline bool block_is_free(uint16_t);
-static inline uint16_t block_addr_to_index(block_t*);
-static inline block_t* block_index_to_addr(uint16_t);
+static inline void block_set_bitmap(uint16_t block_index){
+  block_bitmap[block_index/8] |= 1 << (block_index%8);
+}
+
+static inline void block_clear_bitmap(uint16_t block_index){
+  block_bitmap[block_index/8] &= ~(1 << (block_index%8));
+}
+
+static inline bool block_is_free(uint16_t block_index){
+  return ((block_bitmap[block_index/8] & (1<<(block_index%8))) == 0);
+}
+
+static inline uint16_t block_addr_to_index(block_t* addr){
+  return ((uint32_t) addr - (uint32_t) blocks) / BLOCKSIZE;
+}
+  
+static inline block_t* block_index_to_addr(uint16_t block_index){
+  return &blocks[block_index];
+}
 
 #endif
