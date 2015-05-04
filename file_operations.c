@@ -157,10 +157,10 @@ int rd_unlink(char* pathname){
 int rd_readdir(int fd, char* buffer){
   file_desc* file = file_get_fd(fd);
   if(   file == NULL
-     || str_cmp(inode_get_pointer(file->inode))->type, "dir") != 0){
+     || strcmp(inode_get_pointer(file->inode)->type, "dir") != 0){
        return -1;
   }
-  if(file->f_pos == inode_get_pointer(file->inode))->size){
+  if(file->f_pos == inode_get_pointer(file->inode)->size){
     return 0;
   }
   //copy directory entry

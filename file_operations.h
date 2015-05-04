@@ -25,7 +25,6 @@ int rd_close(int fd);
 //  or -1 if fd does not exist or refers to a directory
 int rd_read(int d, char* buffer, int num_bytes);
 
-//TODO implement rd_write
 //write up to num_bytes to regular file identified by fd
 //returns number of bytes actually written, 
 //  or -1 if fd does not exist or refers to a directory
