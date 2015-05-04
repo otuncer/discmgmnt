@@ -100,7 +100,8 @@ int rd_unlink(char* pathname){
   int parent;
   char child_name[FILENAME_SIZE];
   int child = rd_check_path(pathname, &parent, child_name);
-  if(   file_is_open(child)
+  if(   child == -1
+     || file_is_open(child)
      || inode_remove_entry(parent, child_name) == 0){
     return -1;
   }
