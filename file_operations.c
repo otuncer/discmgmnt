@@ -55,11 +55,42 @@ int rd_readdir(int fd, char* buffer){
   return -1;
 }
 
-//TODO implement rd_check_path
-static inode_t* rd_check_path(char* pathname, inode_t* parent){
+int rd_check_path(char* pathname, int* parent){
+  *parent = -1;
+  int child = 0;
+  char next[14];
+  char* iter;
+  uint16_t dummy;
   
+  //check root
+  if(pathname[0] != '/'){
+    return -1;
+  }else{
+    pathname++;
+  }
+    
+  //get next name
+  while(*pathname != '\0'){
+    iter = next;
+    while(*pathname != '/' && *pathname != '\0'){
+      *iter = *pathname;
+      iter++;
+      pathname++;
+    }
+    *iter = '\0';
+    if(*pathname == '/'){
+      pathname++;
+    }
+    *parent = child;
+    if(*parent != -1){
+      child = inode_find_entry(*parent, next, &dummy);
+      if(child == 0){
+        child = -1;
+      }
+    } else {
+      child = -1;
+    }
+  }
   
-  
-  
-  return NULL;
+  return child;
 }

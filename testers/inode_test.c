@@ -5,8 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-//#include "../block.h"
-//#include "../constants.h"
 #include "../inode.h"
 
 inode_t* inode_head;

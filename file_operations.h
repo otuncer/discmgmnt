@@ -43,8 +43,8 @@ int rd_unlink(char* pathname);
 int rd_readdir(int fd, char* buffer);
 
 //Checks whether the given path exists
-//returns child inode pointer, or NULL if the enry does not exist
-//assigns parent to the parent inode pointer, or NULL if doesn't exist
-static inode_t* rd_check_path(char* pathname, inode_t* parent);
+//returns child inode index, or -1 if the enry does not exist
+//assigns parent to the parent inode index, or -1 if doesn't exist
+int rd_check_path(char* pathname, int* parent);
 
 #endif
