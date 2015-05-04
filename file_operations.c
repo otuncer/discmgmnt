@@ -23,8 +23,9 @@ int rd_creat(char* pathname){
   return 0;
 }
 
-//TODO implement rd_mkdir
 int rd_mkdir(char* pathname){
+  
+  
   return -1;
 }
 
@@ -67,6 +68,7 @@ int rd_check_path(char* pathname, int* parent, char* leaf_name){
   *parent = -1;
   int child = 0;
   char next[FILENAME_SIZE];
+  next[0] = '\0';
   char* iter;
   uint16_t dummy;
   
