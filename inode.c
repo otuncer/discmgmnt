@@ -243,6 +243,8 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
 
 int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
   
+  if(strcmp(inode_get_pointer(file_inode)->type,"reg")) goto fail;
+  
   // find the number of bytes that can actually be read
   const int file_size = inode_get_pointer(file_inode)->size;
   int num_bytes_feasible = ((file_size-f_pos)>=num_bytes) ? num_bytes : (file_size-f_pos);
@@ -281,7 +283,6 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
                             + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16);
 
   int num_bytes_feasible = ((max_size-f_pos)>=num_bytes) ? num_bytes : (max_size-f_pos);
-  // Ozan: where do you think we should handle the case of not having enough blocks to write from the buffer?
   
   // read bytes into the buffer
   int i=0;
@@ -296,12 +297,13 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
     in_block_offset = (f_pos+i)%BLOCK_SIZE;
     cur_block = inode_get_block(file_inode,block_offset);
     
-    // cannot find the block 
-    // Ozan: this part can be modified/removed
-    if(cur_block == NULL) goto fail;
+    // cannot allocate a free block
+    if(cur_block == NULL) { return i;} // return number of bytes written so far
     
-    // read fromthe inode block into the buffer
+    // read from the inode block into the buffer
     cur_block->data[in_block_offset]=buffer[i];
+    // update the size of the file
+    inode_get_pointer(file_inode)->size += 1; // increments in bytes
   }
   
   success:

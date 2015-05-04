@@ -62,14 +62,12 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
  *   0 if unsuccessful
  * */
 bool inode_remove_entry(uint16_t parent_inode, char* name);
-/* TODO inode read bytes
- * Returns:
+/* Returns:
  *  -1 in case of error
  *  number of bytes read
  * */
 int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos);
-/* TODO inode write bytes
- * Returns:
+/* Returns:
  *  -1 in case of error
  *  number of bytes written
  * */

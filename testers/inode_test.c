@@ -19,13 +19,74 @@ block_t* blocks;
 void get_block_test(void);
 void add_entry_test(void);
 void remove_entry_test(void);
+void byte_read_write_test(void);
 
 int main()
 { 
-  get_block_test();
-  add_entry_test();
-  remove_entry_test();
+  //get_block_test();
+  //add_entry_test();
+  //remove_entry_test();
+  byte_read_write_test();
   return 0;
+}
+
+void byte_read_write_test(){
+  
+  //init blocks
+  uint8_t block_bitmap_[NUM_BLOCKS/8];
+  block_t blocks_[NUM_BLOCKS];
+  block_initialize((char*) blocks_, block_bitmap_);
+  //init inodes
+  inode_t inode_head_[NUM_INODES];
+  inode_initialize((char*) inode_head_);
+  
+  // find the number of bytes that can actually be written
+  const int max_size = BLOCK_SIZE*(NUM_DIRECT_PTRS 
+                            + NUM_S_INDIRECT_PTRS * BLOCK_SIZE / 4
+                            + NUM_D_INDIRECT_PTRS * BLOCK_SIZE * BLOCK_SIZE / 16);
+  
+  // add a file entry to the root
+  uint16_t file_index = inode_add_entry(0,"file1",1);
+  
+  char write_data='d';
+  char read_data='a';
+  char readbuffer[900];
+  uint32_t i;
+  
+  /* CASE 1: MAX BYTES */
+  // write max number of bytes to a file
+  for(i=0;i<max_size;i++){
+    assert(inode_write_bytes(file_index, &write_data, 1, i)==1);
+  }
+  
+  /* CASE 2: DATA CONSISTENCY */
+  // now read back the written data
+  for(i=0;i<max_size;i++){
+    inode_read_bytes(file_index, &read_data, 1, i);
+    assert(read_data==write_data);
+  }
+  
+  /* CASE 3: No empty block */
+  
+  // Reinitialize the ramdisk partitions
+  block_initialize((char*)blocks_, block_bitmap_);
+  inode_initialize((char*) inode_head_);
+  
+  // add a file entry to the root
+  file_index = inode_add_entry(0,"file1",1);
+  
+  // alocate all the blocks
+  block_t* ptrs[NUM_BLOCKS];
+  for(i = 0 ; i < NUM_BLOCKS; i++ ){
+    ptrs[i] = block_get_free();
+  }
+  // try adding a new byte, should 0 as no bytes can be written
+  assert(inode_write_bytes(file_index, &write_data,1,0) == 0);
+  //deallocate blocks
+  for(i = 0 ; i < NUM_BLOCKS; i++ ){
+    block_remove(ptrs[i]);
+  }
+  
 }
 
 void add_entry_test(){
@@ -45,7 +106,7 @@ void add_entry_test(){
    
   char buffer[FILENAME_SIZE];
   unsigned int i=0;
-   
+  
   /* CASE 1: No inode to allocate */
   // Occupy all the inodes
   for(i=1;i<NUM_INODES;i++){
@@ -57,7 +118,7 @@ void add_entry_test(){
   for(i=1;i<NUM_INODES;i++){
     strcpy(inode_head[i].type,"");
   }
-   
+  
   /* CASE 2: No block to allocate */
   block_t* ptrs[NUM_BLOCKS];
   //allocate max number of blocks for single inode
@@ -71,7 +132,7 @@ void add_entry_test(){
   for(i = 0 ; i < NUM_BLOCKS; i++ ){
     block_remove(ptrs[i]);
   }
-   
+  
   /* CASE 3: Adding new directory entries */
   for(i=0;i<NUM_INODES-1;i++){
     sprintf(buffer,"%d",i);
@@ -88,7 +149,7 @@ void add_entry_test(){
     assert(strcmp(buffer,inode_get_block(0,block_offset)->directories[in_block_offset].filename)==0);
   }
   
-  /* CASE 4 */
+  /* CASE 4: Find entry test */
   uint16_t eIndex;
   assert(inode_find_entry(0,"583",&eIndex)!=0); // 583 is an existing entry name
   assert(inode_find_entry(0,"dummy",&eIndex)==0); // dummy is not an existing entry name
