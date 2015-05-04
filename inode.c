@@ -46,6 +46,10 @@ inode_t* inode_get_pointer(uint16_t index){
 uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
  
   inode_t* parent_ptr = inode_get_pointer(parent_inode);
+  
+  // Check if the filename already exists
+  uint16_t a;
+  if(inode_find_entry(parent_inode, name, &(a))) return 0;
  
   // Create a new child inode
   inode_t child_node;
