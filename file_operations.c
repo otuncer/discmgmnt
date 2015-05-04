@@ -68,10 +68,6 @@ int rd_read(int fd, char* buffer, int num_bytes){
   if(strcmp(target_inode_ptr->type,"reg")) 
     goto fail;
   
-  // Check if the f_pos is in a feasible range
-  if((target_file_desc->f_pos)>=(target_inode_ptr->size))
-    goto fail;
-  
   // Read bytes from the file
   num_bytes_read = inode_read_bytes(target_inode_index, buffer, num_bytes, target_file_desc->f_pos);
   if(num_bytes_read == -1)
@@ -86,14 +82,64 @@ int rd_read(int fd, char* buffer, int num_bytes){
     return -1;
 }
 
-//TODO implement rd_write
 int rd_write(int fd, char* buffer, int num_bytes){
-  return -1;
+  
+  // Major variables
+  int num_bytes_written;        // Number of bytes that are successfully written
+  file_desc* target_file_desc;  // File descriptor of the target file being written to
+  uint16_t target_inode_index;  // Inode index 
+  inode_t* target_inode_ptr;    // Pointer to the corresponding inode
+  
+  // Check if the target file exists
+  target_file_desc = file_get_fd(fd);
+  if(target_file_desc==NULL) 
+    goto fail;
+  
+  // Verify that target is not a directory file
+  target_inode_index = target_file_desc->inode;
+  target_inode_ptr = inode_get_pointer(target_inode_index);
+  if(strcmp(target_inode_ptr->type,"reg")) 
+    goto fail;
+  
+  // Write bytes to the file
+  num_bytes_written = inode_write_bytes(target_inode_index, buffer, num_bytes, target_file_desc->f_pos);
+  if(num_bytes_written == -1)
+    goto fail;
+  
+  // Update the file position
+  target_file_desc->f_pos += num_bytes_written;
+  
+  success:
+    return num_bytes_written;
+  fail:
+    return -1;
 }
 
-//TODO implement rd_seek
-int rd_seek(int fd, int offset){
-  return -1;
+int rd_lseek(int fd, int offset){
+
+  // Major variables
+  file_desc* target_file_desc;  // File descriptor of the target file
+  uint16_t target_inode_index;  // Inode index 
+  inode_t* target_inode_ptr;    // Pointer to the corresponding inode
+  
+  // Check if the target file exists
+  target_file_desc = file_get_fd(fd);
+  if(target_file_desc==NULL) 
+    goto fail;
+  
+  // Verify that target is not a directory file
+  target_inode_index = target_file_desc->inode;
+  target_inode_ptr = inode_get_pointer(target_inode_index);
+  if(strcmp(target_inode_ptr->type,"reg")) 
+    goto fail;
+  
+  // Assign new file position 
+  target_file_desc->f_pos = (offset > (target_inode_ptr->size)) ? (target_inode_ptr->size) : offset;
+  
+  success:
+    return 0;
+  fail:
+    return -1;
 }
 
 int rd_unlink(char* pathname){
