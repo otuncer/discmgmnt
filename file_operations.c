@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #else
+#include <linux/string.h>
 #include <linux/types.h>
 #endif
 
@@ -55,5 +57,9 @@ int rd_readdir(int fd, char* buffer){
 
 //TODO implement rd_check_path
 static inode_t* rd_check_path(char* pathname, inode_t* parent){
+  
+  
+  
+  
   return NULL;
 }
