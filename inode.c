@@ -304,6 +304,7 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
   for(i=0;i<num_bytes_feasible;i++){
 
     // identify target bytes index
+    
     block_offset = (f_pos+i)/BLOCK_SIZE;
     in_block_offset = (f_pos+i)%BLOCK_SIZE;
     cur_block = inode_get_block(file_inode,block_offset);
@@ -314,7 +315,9 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
     // read from the inode block into the buffer
     cur_block->data[in_block_offset]=buffer[i];
     // update the size of the file
-    inode_get_pointer(file_inode)->size += 1; // increments in bytes
+    if((f_pos+i)==(inode_get_pointer(file_inode)->size)){
+      inode_get_pointer(file_inode)->size += 1; // increments in bytes
+    }
   }
   
   success:

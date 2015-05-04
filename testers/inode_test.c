@@ -87,6 +87,7 @@ void byte_read_write_test(){
     block_remove(ptrs[i]);
   }
   
+  printf("add/write byte test passed.\n");
 }
 
 void add_entry_test(){
