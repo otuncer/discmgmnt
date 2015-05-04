@@ -108,9 +108,19 @@ int rd_unlink(char* pathname){
   return 0;
 }
 
-//TODO implement rd_readdir
 int rd_readdir(int fd, char* buffer){
-  return -1;
+  file_desc* file = file_get_fd(fd);
+  if(   file == NULL
+     || str_cmp(inode_get_pointer(file->inode))->type, "dir") != 0){
+       return -1;
+  }
+  if(file->f_pos == inode_get_pointer(file->inode))->size){
+    return 0;
+  }
+  //copy directory entry
+  inode_read_bytes(file->inode, buffer, FILENAME_SIZE+2, file->f_pos);
+  
+  return 1;
 }
 
 int rd_check_path(char* pathname, int* parent, char* leaf_name){
