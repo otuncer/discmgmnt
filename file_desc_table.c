@@ -1,14 +1,17 @@
 #include "file_desc_table.h"
 
 #ifdef DEBUG
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#else
+#include <linux/types.h>
 #endif
 
 //returns next available fd index
-static uint16_t findNextFd();
+static uint16_t file_find_next_fd();
 
-uint16_t add_file_desc(uint16_t inode)
+uint16_t file_add_desc(uint16_t inode)
 {
   //create new descriptor
 #ifdef DEBUG
@@ -16,7 +19,7 @@ uint16_t add_file_desc(uint16_t inode)
 #else
   file_desc* new_desc = vmalloc(sizeof(file_desc));
 #endif
-  new_desc->fd = findNextFd();
+  new_desc->fd = file_find_next_fd();
   new_desc->inode = inode;
   new_desc->f_pos = 0;
   new_desc->next = file_desc_table; //add to head
@@ -24,7 +27,7 @@ uint16_t add_file_desc(uint16_t inode)
   return new_desc->fd;
 }
 
-uint16_t remove_fd(uint16_t fd)
+uint16_t file_remove_fd(uint16_t fd)
 {
   file_desc* iter = file_desc_table;
   if(iter == NULL){
@@ -56,7 +59,7 @@ uint16_t remove_fd(uint16_t fd)
   }
 }
 
-file_desc* get_fd(uint16_t fd)
+file_desc* file_get_fd(uint16_t fd)
 {
   file_desc* iter;
   for(iter = file_desc_table;
@@ -65,7 +68,7 @@ file_desc* get_fd(uint16_t fd)
   return iter;
 }
 
-uint16_t findNextFd()
+uint16_t file_find_next_fd()
 {
   int fd = -1;
   file_desc* iter = file_desc_table;
@@ -77,4 +80,14 @@ uint16_t findNextFd()
         iter = iter->next);
   }while(iter != NULL);
   return fd;
+}
+
+bool file_is_open(uint16_t inode){
+  file_desc* iter;
+  for(iter = file_desc_table; iter != NULL; iter = iter->next){
+    if(iter->inode == inode){
+      return true;
+    }
+  }
+  return false;
 }
