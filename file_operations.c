@@ -12,32 +12,41 @@
 #endif
 
 int rd_creat(char* pathname){
+  return rd_create(pathname, 1);
+}
+
+int rd_mkdir(char* pathname){
+  return rd_create(pathname, 0);
+}
+
+int rd_create(char* pathname, int isFile){
   int parent;
   char child_name[FILENAME_SIZE];
   int child = rd_check_path(pathname, &parent, child_name);
-  if(child != -1 || parent == -1){
-    return -1;
-  }
-  if(inode_add_entry(parent, child_name, 1) == 0){
+  if(   child != -1
+     || parent == -1
+     || strcmp(inode_get_pointer(parent)->type,"dir") != 0
+     || inode_add_entry(parent, child_name, isFile) == 0){
     return -1;
   }
   return 0;
 }
 
-int rd_mkdir(char* pathname){
-  
-  
-  return -1;
-}
-
-//TODO implement rd_open
 int rd_open(char* pathname){
-  return -1;
+  int parent;
+  char child_name[FILENAME_SIZE];
+  int child = rd_check_path(pathname, &parent, child_name);
+  if(child == -1){
+    return -1;
+  }
+  return file_add_desc(child);
 }
 
-//TODO implement rd_close
 int rd_close(int fd){
-  return -1;
+  if(file_remove_fd(fd) == 0){
+    return -1;
+  }
+  return 0;
 }
 
 int rd_read(int fd, char* buffer, int num_bytes){
@@ -87,9 +96,15 @@ int rd_seek(int fd, int offset){
   return -1;
 }
 
-//TODO implement rd_unlink
 int rd_unlink(char* pathname){
-  return -1;
+  int parent;
+  char child_name[FILENAME_SIZE];
+  int child = rd_check_path(pathname, &parent, child_name);
+  if(   file_is_open(child)
+     || inode_remove_entry(parent, child_name) == 0){
+    return -1;
+  }
+  return 0;
 }
 
 //TODO implement rd_readdir

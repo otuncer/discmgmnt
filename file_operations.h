@@ -9,6 +9,9 @@ int rd_creat(char* pathname);
 //creates a directory. Returns 0 on success, -1 on error.
 int rd_mkdir(char* pathname);
 
+//creates a file or directory. Returns 0 on success, -1 on error.
+int rd_create(char* pathname, int isFile);
+
 //opens an existing file or directory.
 //Returns file descriptor, or -1 if the file/folder does not exist.
 int rd_open(char* pathname);
