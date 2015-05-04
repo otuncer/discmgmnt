@@ -1,4 +1,5 @@
 #include "file_operations.h"
+#include "file_desc_table.h"
 
 #ifdef DEBUG
 #include <stdbool.h>
@@ -30,13 +31,45 @@ int rd_close(int fd){
   return -1;
 }
 
-//TODO implement rd_read
-int rd_read(int d, char* buffer, int num_bytes){
-  return -1;
+int rd_read(int fd, char* buffer, int num_bytes){
+  
+  // Major variables
+  int num_bytes_read;           // Number of bytes that are successfully read
+  file_desc* target_file_desc;  // File descriptor of the target file being read
+  uint16_t target_inode_index;  // Inode index 
+  inode_t* target_inode_ptr;    // Pointer to the corresponding inode
+  
+  // Check if the target file exists
+  target_file_desc = file_get_fd(fd);
+  if(target_file_desc==NULL) 
+    goto fail;
+  
+  // Verify that target is not a directory file
+  target_inode_index = target_file_desc->inode;
+  target_inode_ptr = inode_get_pointer(target_inode_index);
+  if(strcmp(target_inode_ptr->type,"reg")) 
+    goto fail;
+  
+  // Check if the f_pos is in a feasible range
+  if((target_file_desc->f_pos)>=(target_inode_ptr->size))
+    goto fail;
+  
+  // Read bytes from the file
+  num_bytes_read = inode_read_bytes(target_inode_index, buffer, num_bytes, target_file_desc->f_pos);
+  if(num_bytes_read == -1)
+    goto fail;
+  
+  // Update the file position
+  target_file_desc->f_pos += num_bytes_read;
+  
+  success:
+    return num_bytes_read;
+  fail:
+    return -1;
 }
 
 //TODO implement rd_write
-int rd_write(int d, char* buffer, int num_bytes){
+int rd_write(int fd, char* buffer, int num_bytes){
   return -1;
 }
 
