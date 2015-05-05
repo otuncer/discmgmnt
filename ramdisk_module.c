@@ -29,6 +29,7 @@ char* ramdisk_mem;
 inode_t* inode_head;
 uint8_t* block_bitmap;
 block_t* blocks;
+super_block_t* super_block;
 
 /***** INIT MODULE ******/
 static int __init initialization_routine(void) {

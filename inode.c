@@ -16,9 +16,9 @@
  * Set type="",
  * size=0
  * */
-void inode_initialize(char* inode_partition){
+void inode_initialize(char* inode_partition, super_block_t* sb)){
   int i;
-  
+  sb->num_inodes = NUM_INODES;
   inode_head = (inode_t*)inode_partition;
   for(i=0; i<NUM_INODES; i++){
     strcpy(inode_head[i].type,"");
@@ -79,6 +79,8 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   // Add newly created entry to the parent node
   target_block->directories[in_block_offset] = new_dir;
   parent_ptr->size += sizeof(directory_entry_t);
+  //update superblock
+  sb->num_inodes--;
   
   // inode is allocated when the type field is set
   (isFile==1) ? (strcpy(child_node.type,"reg")):(strcpy(child_node.type,"dir"));
@@ -228,13 +230,16 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
                                   src_blk->directories[(i+1)%entry_per_block];
     dest_blk = src_blk;
   }
-  //reduce parent size
-  parent_ptr->size -= sizeof(directory_entry_t);
-  
   //delete last block if it is not being used
   if((i+1) % entry_per_block == 0){
     block_remove(src_blk);
   }
+  
+  //reduce parent size
+  parent_ptr->size -= sizeof(directory_entry_t);
+  //update superblock
+  sb->num_inodes++;
+  
   return true;
 }
 

@@ -7,8 +7,11 @@
 #include <linux/types.h>
 #endif
 
-void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr){
+void block_initialize(char* blocks_ptr,
+                      uint8_t* bitmap_ptr,
+                      super_block_t* super_block){
   uint16_t i;
+  super_block->num_free_blocks = NUM_BLOCKS;
   blocks = (block_t*)blocks_ptr;
   block_bitmap = bitmap_ptr;
   for(i=0;i<NUM_BLOCKS;i++){
@@ -21,6 +24,7 @@ block_t* block_get_free(){
   for(i=0;i<NUM_BLOCKS;i++){
     if(block_is_free(i)){
       block_set_bitmap(i);
+      super_block->num_free_blocks--;
       return block_index_to_addr(i);
     }
   }
@@ -28,5 +32,6 @@ block_t* block_get_free(){
 }
  
 void block_remove(block_t* ptr){
+  super_block->num_free_blocks++;
   block_clear_bitmap(block_addr_to_index(ptr));
 }

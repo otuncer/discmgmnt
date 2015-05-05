@@ -29,7 +29,7 @@ extern inode_t* inode_head;
  * Set type="",
  * size=0
  * */
-void inode_initialize(char* inode_partition);
+void inode_initialize(char* inode_partition, super_block_t* sb);
 /*
  * Returns:
  *  A pointer to the inode with a given index

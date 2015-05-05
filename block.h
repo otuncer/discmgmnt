@@ -22,12 +22,17 @@ typedef union _block_t{
   union _block_t* block_ptr[BLOCKSIZE/4];
 }block_t;
 
+typedef struct _super_block_t{
+  uint16_t num_free_blocks;
+  uint16_t num_inodes;
+} super_block_t;
+
 /* Block Bitmap Array 
  * A single bit indicates whether the block is occupied 
  * */
 extern uint8_t* block_bitmap;
-
 extern block_t* blocks;
+extern super_block_t* super_block;
 
 /*************************/
 /** FUNCTION PROTOTYPES **/
@@ -35,7 +40,9 @@ extern block_t* blocks;
 /*
  * Initialize ramdisk block partition and the bitmap array
  * */
-void block_initialize(char* blocks_ptr, uint8_t* bitmap_ptr);
+void block_initialize(char* blocks_ptr,
+                      uint8_t* bitmap_ptr,
+                      super_block_t* super_block);
 
 /*
  * Allocates a new block
