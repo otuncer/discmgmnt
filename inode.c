@@ -16,7 +16,7 @@
  * Set type="",
  * size=0
  * */
-void inode_initialize(char* inode_partition, super_block_t* sb)){
+void inode_initialize(char* inode_partition, super_block_t* sb){
   int i;
   sb->num_inodes = NUM_INODES;
   inode_head = (inode_t*)inode_partition;
@@ -80,7 +80,7 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
   target_block->directories[in_block_offset] = new_dir;
   parent_ptr->size += sizeof(directory_entry_t);
   //update superblock
-  sb->num_inodes--;
+  super_block->num_inodes--;
   
   // inode is allocated when the type field is set
   (isFile==1) ? (strcpy(child_node.type,"reg")):(strcpy(child_node.type,"dir"));
@@ -238,7 +238,7 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   //reduce parent size
   parent_ptr->size -= sizeof(directory_entry_t);
   //update superblock
-  sb->num_inodes++;
+  super_block->num_inodes++;
   
   return true;
 }
@@ -300,11 +300,17 @@ int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t 
     if(cur_block == NULL) goto fail;
     
     // read fromthe inode block into the buffer
+#ifndef DEBUG
     if(copy_to_user(&buffer[i], &(cur_block->data[in_block_offset]),1) != 0){
-      return -1;
+      goto fail;
     }
+#else
+    buffer[i] = cur_block->data[in_block_offset];
+#endif
   }
   return num_bytes_feasible;
+  fail:
+    return -1;
 }
 
 int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
@@ -333,9 +339,13 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
     if(cur_block == NULL) { return i;} // return number of bytes written so far
     
     // read from the inode block into the buffer
+#ifndef DEBUG
     if(copy_from_user(&(cur_block->data[in_block_offset]), &buffer[i], 1) != 0){
       return -1;
     }
+#else
+    cur_block->data[in_block_offset] = buffer[i];
+#endif
     // update the size of the file
     if((f_pos+i)==(inode_get_pointer(file_inode)->size)){
       inode_get_pointer(file_inode)->size += 1; // increments in bytes

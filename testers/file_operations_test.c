@@ -8,6 +8,7 @@
 #include "../file_operations.h"
 #include "../file_desc_table.h"
 
+super_block_t* super_block;
 inode_t* inode_head;
 uint8_t* block_bitmap;
 block_t* blocks;
@@ -15,8 +16,8 @@ block_t* blocks;
 int reg1, dir1, dir1_dir1, dir1_reg1;
 
 void fresh_setup(){
-  block_initialize((char*) blocks, block_bitmap);
-  inode_initialize((char*) inode_head);
+  block_initialize((char*) blocks, block_bitmap, super_block);
+  inode_initialize((char*) inode_head, super_block);
 }
 
 int test_check_path(void){
@@ -167,6 +168,8 @@ void test_file_operations(){
 
 int main(){
   //init
+  super_block_t super_blk;
+  super_block = &super_blk;
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_bitmap = block_bitmap_;
   block_t blocks_[NUM_BLOCKS];

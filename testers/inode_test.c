@@ -7,6 +7,7 @@
 
 #include "../inode.h"
 
+super_block_t* super_block;
 inode_t* inode_head;
 uint8_t* block_bitmap;
 block_t* blocks;
@@ -21,6 +22,8 @@ void byte_read_write_test(void);
 
 int main()
 { 
+  super_block_t super_blk;
+  super_block = &super_blk;
   get_block_test();
   add_entry_test(); //add & find
   remove_entry_test();
@@ -33,10 +36,10 @@ void byte_read_write_test(){
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
-  block_initialize((char*) blocks_, block_bitmap_);
+  block_initialize((char*) blocks_, block_bitmap_, super_block);
   //init inodes
   inode_t inode_head_[NUM_INODES];
-  inode_initialize((char*) inode_head_);
+  inode_initialize((char*) inode_head_, super_block);
   
   // find the number of bytes that can actually be written
   const int max_size = BLOCKSIZE*(NUM_DIRECT_PTRS 
@@ -67,8 +70,8 @@ void byte_read_write_test(){
   /* CASE 3: No empty block */
   
   // Reinitialize the ramdisk partitions
-  block_initialize((char*)blocks_, block_bitmap_);
-  inode_initialize((char*) inode_head_);
+  block_initialize((char*)blocks_, block_bitmap_, super_block);
+  inode_initialize((char*) inode_head_, super_block);
   
   // add a file entry to the root
   file_index = inode_add_entry(0,"file1",1);
@@ -92,10 +95,10 @@ void add_entry_test(){
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
-  block_initialize((char*) blocks_, block_bitmap_);
+  block_initialize((char*) blocks_, block_bitmap_, super_block);
   //init inodes
   inode_t inode_head_[NUM_INODES];
-  inode_initialize((char*) inode_head_);
+  inode_initialize((char*) inode_head_, super_block);
    
   //
   const int num_max_inode_blocks = NUM_DIRECT_PTRS
@@ -160,10 +163,10 @@ void remove_entry_test(){
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
-  block_initialize((char*) blocks_, block_bitmap_);
+  block_initialize((char*) blocks_, block_bitmap_, super_block);
   //init inodes
   inode_t inode_head_[NUM_INODES];
-  inode_initialize((char*) inode_head_);
+  inode_initialize((char*) inode_head_, super_block);
   strcpy(inode_head[0].type,"dir");
   
   uint16_t entries[5];
@@ -230,10 +233,10 @@ void get_block_test(){
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
-  block_initialize((char*) blocks_, block_bitmap_);
+  block_initialize((char*) blocks_, block_bitmap_, super_block);
   //init inodes
   inode_t inode_head_[NUM_INODES];
-  inode_initialize((char*) inode_head_);
+  inode_initialize((char*) inode_head_, super_block);
   
   // test inode_get_block
   const int num_max_inode_blocks = NUM_DIRECT_PTRS 
@@ -264,8 +267,8 @@ void get_block_test(){
   assert(block_bitmap[i] == 3);
   
   //reset
-  block_initialize((char*)blocks_, block_bitmap_);
-  inode_initialize((char*) inode_head_);
+  block_initialize((char*)blocks_, block_bitmap_, super_block);
+  inode_initialize((char*) inode_head_, super_block);
   //allocate all blocks
   for(i = 0 ; i < NUM_BLOCKS/8; i++ ){
     block_bitmap[i] = 255;

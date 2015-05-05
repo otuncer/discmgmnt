@@ -4,15 +4,18 @@
 
 #include "../block.h"
 
+super_block_t* super_block;
 uint8_t* block_bitmap;
 block_t* blocks;
 
 int main()
 {
+  super_block_t super_blk;
+  super_block = &super_blk;
   //init blocks
   uint8_t block_bitmap_[NUM_BLOCKS/8];
   block_t blocks_[NUM_BLOCKS];
-  block_initialize((char*) blocks_, block_bitmap_);
+  block_initialize((char*) blocks_, block_bitmap_, super_block);
   int i;
   //check whether all are free
   for(i=0;i<NUM_BLOCKS/8;i++){
