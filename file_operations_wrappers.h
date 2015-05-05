@@ -1,8 +1,6 @@
 #ifndef FILE_OPERATIONS_WRAPPERS_H
 #define FILE_OPERATIONS_WRAPPERS_H
 
-extern int ramdisk;
-
 // TODO: rd_creat wrapper 
 //Issues  IOCTL_CREAT command
 int rd_creat(char* pathname);
