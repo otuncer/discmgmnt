@@ -41,14 +41,19 @@ static int __init initialization_routine(void) {
     printk("<1> Error creating /proc entry.\n");
     return -ENOMEM;
   }
+  proc_entry->proc_fops = &pseudo_dev_proc_operations;
   pseudo_dev_proc_operations.ioctl = pseudo_device_ioctl;
 
-	/* Allocate RAMDISK memory area */
+	// Allocate RAMDISK memory area
 	if( (ramdisk_mem = vmalloc(PARTITION_SIZE)) == NULL){
     return -ENOMEM;
   }
-
-  proc_entry->proc_fops = &pseudo_dev_proc_operations;
+  //initialize global pointers
+  super_block = (super_block_t*) &ramdisk_mem[0];
+  inode_initialize(&ramdisk_mem[BLOCKSIZE], super_block);
+  block_initialize(&ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)+NUM_BLOCKS/8],//blocks
+                   &ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)], //bit-map ptr
+                   super_block);
 	
   return 0;
 }
