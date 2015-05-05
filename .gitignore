@@ -33,3 +33,7 @@
 
 # Kernel-related
 *.mod.c
+*.cmd
+.tmp_versions
+*.symvers
+*.order

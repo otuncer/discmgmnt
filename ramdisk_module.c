@@ -23,6 +23,7 @@ MODULE_LICENSE("GPL");
 static struct file_operations pseudo_dev_proc_operations;
 static struct proc_dir_entry *proc_entry;
 
+char* ramdisk_mem;
 inode_t* inode_head;
 uint8_t* block_bitmap;
 block_t* blocks;
@@ -41,7 +42,7 @@ static int __init initialization_routine(void) {
   }
 
 	/* Allocate RAMDISK memory area */
-	char* ramdisk_mem = vmalloc(2*MEGABYTES);
+	ramdisk_mem = vmalloc(2*MEGABYTES);
 
   proc_entry->proc_fops = &pseudo_dev_proc_operations;
 	

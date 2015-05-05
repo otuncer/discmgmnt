@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #else
+#include <asm/uaccess.h>
+#include <linux/errno.h>
 #include <linux/string.h>
 #include <linux/types.h>
 #endif
@@ -15,7 +17,7 @@
  * size=0
  * */
 void inode_initialize(char* inode_partition){
-  int i,j;
+  int i;
   
   inode_head = (inode_t*)inode_partition;
   for(i=0; i<NUM_INODES; i++){
@@ -44,28 +46,33 @@ inode_t* inode_get_pointer(uint16_t index){
 }
 
 uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
- 
-  inode_t* parent_ptr = inode_get_pointer(parent_inode);
+  inode_t* parent_ptr;
+  uint16_t a;
+  inode_t child_node;
+  uint16_t child_node_index;
+  directory_entry_t new_dir;
+  uint8_t block_offset;
+  uint8_t in_block_offset;
+  block_t* target_block;
+  
+  parent_ptr = inode_get_pointer(parent_inode);
   
   // Check if the filename already exists
-  uint16_t a;
   if(inode_find_entry(parent_inode, name, &(a))) return 0;
  
   // Create a new child inode
-  inode_t child_node;
-  uint16_t child_node_index = inode_get_free_index();
+  child_node_index = inode_get_free_index();
   if(child_node_index==0) return 0; // Could not allocate inode
   child_node.size=0;
   
   // Create a new directory
-  directory_entry_t new_dir;
   strcpy(new_dir.filename,name);
   new_dir.index_node_number = child_node_index;
   
   // Find a target block for adding a new entry
-  uint8_t block_offset = (parent_ptr->size)/(BLOCKSIZE); // index into the location table
-  uint8_t in_block_offset = (parent_ptr->size % BLOCKSIZE)/(sizeof(directory_entry_t)); // index into the block
-  block_t* target_block = inode_get_block(parent_inode, block_offset);
+  block_offset = (parent_ptr->size)/(BLOCKSIZE); // index into the location table
+  in_block_offset = (parent_ptr->size % BLOCKSIZE)/(sizeof(directory_entry_t)); // index into the block
+  target_block = inode_get_block(parent_inode, block_offset);
   
   if(target_block==NULL) return 0; // Could not a allocate block
   
@@ -81,10 +88,18 @@ uint16_t inode_add_entry(uint16_t parent_inode, char* name, uint16_t isFile){
 
 block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
   //find whether adding a new block
-  uint16_t num_used_blocks = inode_head[inode].size / 256
-                            + ((inode_head[inode].size % 256) != 0);
-  bool adding = (block_offset >= num_used_blocks);
+  uint16_t num_used_blocks;
   block_t* block_ptr;
+  uint16_t ptrs_per_blk;
+  block_t** base_loc;
+  uint16_t s_index, s_offset;
+  uint16_t d_index, d_offset;
+  block_t* d_ptr, *s_ptr;
+  bool adding;
+  block_ptr = NULL;
+  num_used_blocks = inode_head[inode].size / 256
+                    + ((inode_head[inode].size % 256) != 0);
+  adding = (block_offset >= num_used_blocks);
   if(adding){
     block_ptr = block_get_free();
     if(block_ptr == NULL){ // no available block
@@ -92,8 +107,8 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
     }
   }
   //find the corresponding location pointer in the inode
-  uint16_t ptrs_per_blk = (BLOCKSIZE/4);
-  block_t** base_loc = inode_head[inode].location;
+  ptrs_per_blk = (BLOCKSIZE/4);
+  base_loc = inode_head[inode].location;
   if(block_offset < NUM_DIRECT_PTRS){ // direct
     if(adding){
       base_loc[block_offset] = block_ptr;
@@ -106,15 +121,15 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
     //remove direct ptr offsets
     block_offset -= NUM_DIRECT_PTRS;
     base_loc = &(base_loc[NUM_DIRECT_PTRS]);
-    uint16_t s_index = block_offset / ptrs_per_blk;
-    uint16_t s_offset = block_offset % ptrs_per_blk;
+    s_index = block_offset / ptrs_per_blk;
+    s_offset = block_offset % ptrs_per_blk;
 
     if(!adding){
       block_ptr = base_loc[s_index]->block_ptr[s_offset];
     } else if(s_offset != 0) { //adding
       base_loc[s_index]->block_ptr[s_offset] = block_ptr;
     } else { //creating a new singly indirect block
-      block_t* s_ptr = block_get_free();
+      s_ptr = block_get_free();
       if(s_ptr == NULL){ // no available block
         block_remove(block_ptr);
         return NULL;
@@ -130,16 +145,16 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
     //remove direct & single indirect ptr offsets
     block_offset -= (NUM_DIRECT_PTRS + NUM_S_INDIRECT_PTRS * ptrs_per_blk);
     base_loc = &(base_loc[NUM_DIRECT_PTRS + NUM_S_INDIRECT_PTRS]);
-    uint16_t d_index = block_offset / (ptrs_per_blk * ptrs_per_blk);
-    uint16_t d_offset = (block_offset % (ptrs_per_blk * ptrs_per_blk)) / ptrs_per_blk;
-    uint16_t s_offset = block_offset % ptrs_per_blk;
+    d_index = block_offset / (ptrs_per_blk * ptrs_per_blk);
+    d_offset = (block_offset % (ptrs_per_blk * ptrs_per_blk)) / ptrs_per_blk;
+    s_offset = block_offset % ptrs_per_blk;
 
     if(!adding){
       block_ptr = base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset];
     } else if(s_offset != 0){ //adding
       base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset] = block_ptr;
     } else if(d_offset != 0 && s_offset == 0){ //new single indirect pointer
-      block_t* s_ptr = block_get_free();
+      s_ptr = block_get_free();
       if(s_ptr == NULL){ // no available block
         block_remove(block_ptr);
         return NULL;
@@ -148,8 +163,8 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
         base_loc[d_index]->block_ptr[d_offset]->block_ptr[s_offset] = block_ptr;
       }
     } else { //new double pointer
-      block_t* d_ptr = block_get_free();
-      block_t* s_ptr = block_get_free();
+      d_ptr = block_get_free();
+      s_ptr = block_get_free();
       if(s_ptr == NULL){//no available block
         if(d_ptr != NULL){
           block_remove(d_ptr);
@@ -171,19 +186,23 @@ block_t* inode_get_block(uint16_t inode, uint16_t block_offset){
 bool inode_remove_entry(uint16_t parent_inode, char* name){
   uint16_t entry_index;
   uint16_t child_inode;
+  inode_t* child_ptr, *parent_ptr;
+  int32_t i;
+  uint16_t num_entries;
+  uint16_t entry_per_block;
+  block_t* dest_blk, *src_blk;
   
   //check entry existence
   if((child_inode = inode_find_entry(parent_inode, name, &entry_index)) == 0){
     return false;
   }
-  inode_t* child_ptr = inode_get_pointer(child_inode);
+  child_ptr = inode_get_pointer(child_inode);
   //if folder, check if root or non-empty
   if(strcmp(child_ptr->type, "dir") == 0){
     if(child_ptr->size != 0 || child_inode == 0){
       return false;
     }
   } else { // if file, free all blocks
-    int32_t i;
     uint16_t num_used_blocks = child_ptr->size / 256
                                 + ((child_ptr->size % 256) != 0);
     for(i = (int32_t) num_used_blocks - 1; i >= 0; i--){
@@ -195,46 +214,49 @@ bool inode_remove_entry(uint16_t parent_inode, char* name){
   child_ptr->type[0] = '\0';
   
   //shift all entries back
-  inode_t* parent_ptr = inode_get_pointer(parent_inode);
-  uint16_t num_entries = (parent_ptr->size)/sizeof(directory_entry_t);
-  uint16_t entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
-  block_t* dest_blk = inode_get_block(parent_inode, 
+  parent_ptr = inode_get_pointer(parent_inode);
+  num_entries = (parent_ptr->size)/sizeof(directory_entry_t);
+  entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
+  dest_blk = inode_get_block(parent_inode, 
                                      entry_index / entry_per_block);
-  block_t* src_blk = dest_blk;
-  uint16_t it;
-  for(it = entry_index; it < num_entries - 1; it++){
-    if((it+1) % entry_per_block == 0){
-      src_blk = inode_get_block(parent_inode, (it+1) / entry_per_block);
+  src_blk = dest_blk;
+  for(i = entry_index; i < num_entries - 1; i++){
+    if((i+1) % entry_per_block == 0){
+      src_blk = inode_get_block(parent_inode, (i+1) / entry_per_block);
     }
-    dest_blk->directories[it%entry_per_block] = 
-                                  src_blk->directories[(it+1)%entry_per_block];
+    dest_blk->directories[i%entry_per_block] = 
+                                  src_blk->directories[(i+1)%entry_per_block];
     dest_blk = src_blk;
   }
   //reduce parent size
   parent_ptr->size -= sizeof(directory_entry_t);
   
   //delete last block if it is not being used
-  if((it+1) % entry_per_block == 0){
+  if((i+1) % entry_per_block == 0){
     block_remove(src_blk);
   }
   return true;
 }
 
 uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryIndex){
-   
-  inode_t* parent_ptr = inode_get_pointer(parent_inode);
+  inode_t* parent_ptr;
+  uint16_t num_dir_entries;
+  uint16_t num_entry_per_block;
+  uint16_t i;
+  uint16_t cur_block_index;
+  block_t* cur_block_ptr;
+  
+  parent_ptr = inode_get_pointer(parent_inode);
 
   // Check if directory or a file
   if(strcmp(parent_ptr->type, "dir"))
     return 0;
 
   // Go through the location field of the inode to search entries
-  uint16_t num_dir_entries = (parent_ptr->size)/sizeof(directory_entry_t);
-  uint16_t num_entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
-  uint16_t i=0;
-  uint16_t cur_block_index=0;
-  block_t* cur_block_ptr;
-   
+  num_dir_entries = (parent_ptr->size)/sizeof(directory_entry_t);
+  num_entry_per_block = BLOCKSIZE/sizeof(directory_entry_t);
+  cur_block_index=0;
+  cur_block_ptr=NULL;
   for(i=0;i<num_dir_entries;i++){
      
     if((i%num_entry_per_block)==0){ // Move on to the next block?
@@ -251,19 +273,17 @@ uint16_t inode_find_entry(uint16_t parent_inode, char* name, uint16_t* entryInde
 }
 
 int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
-  
-  //if(strcmp(inode_get_pointer(file_inode)->type,"reg")) goto fail;
-  
   // find the number of bytes that can actually be read
   const int file_size = inode_get_pointer(file_inode)->size;
-  int num_bytes_feasible = ((file_size-f_pos)>=num_bytes) ? num_bytes : (file_size-f_pos);
-  //printf("INODE: NFB %d\n", num_bytes_feasible);
-  // read bytes into the buffer
-  int i=0;
+  int num_bytes_feasible;
+  int i;
   uint32_t block_offset;
   uint32_t in_block_offset;
   block_t* cur_block;
-
+  
+  num_bytes_feasible = ((file_size-f_pos)>=num_bytes) ? num_bytes 
+                                                      : (file_size-f_pos);
+  // read bytes into the buffer
   for(i=0;i<num_bytes_feasible;i++){
 
     // identify target bytes index
@@ -275,13 +295,11 @@ int inode_read_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t 
     if(cur_block == NULL) goto fail;
     
     // read fromthe inode block into the buffer
-    buffer[i] = cur_block->data[in_block_offset];
+    if(copy_to_user(&buffer[i], &(cur_block->data[in_block_offset]),1) != 0){
+      return -1;
+    }
   }
-  
-  success:
-    return num_bytes_feasible;
-  fail:
-    return -1;
+  return num_bytes_feasible;
 }
 
 int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t f_pos){
@@ -291,18 +309,17 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
                             + NUM_S_INDIRECT_PTRS * BLOCKSIZE / 4
                             + NUM_D_INDIRECT_PTRS * BLOCKSIZE * BLOCKSIZE / 16);
 
-  int num_bytes_feasible = ((max_size-f_pos)>=num_bytes) ? num_bytes : (max_size-f_pos);
-  
-  // read bytes into the buffer
-  int i=0;
+  int num_bytes_feasible;
+  int i;
   uint32_t block_offset;
   uint32_t in_block_offset;
   block_t* cur_block;
-
+  
+  num_bytes_feasible = ((max_size-f_pos)>=num_bytes) ? num_bytes : (max_size-f_pos);
+  
+  // read bytes into the buffer
   for(i=0;i<num_bytes_feasible;i++){
-
     // identify target bytes index
-    
     block_offset = (f_pos+i)/BLOCKSIZE;
     in_block_offset = (f_pos+i)%BLOCKSIZE;
     cur_block = inode_get_block(file_inode,block_offset);
@@ -311,15 +328,13 @@ int inode_write_bytes(uint16_t file_inode, char* buffer, int num_bytes, uint32_t
     if(cur_block == NULL) { return i;} // return number of bytes written so far
     
     // read from the inode block into the buffer
-    cur_block->data[in_block_offset]=buffer[i];
+    if(copy_from_user(&(cur_block->data[in_block_offset]), &buffer[i], 1) != 0){
+      return -1;
+    }
     // update the size of the file
     if((f_pos+i)==(inode_get_pointer(file_inode)->size)){
       inode_get_pointer(file_inode)->size += 1; // increments in bytes
     }
   }
-  
-  success:
-    return num_bytes_feasible;
-  fail:
-    return -1;
+  return num_bytes_feasible;
 }
