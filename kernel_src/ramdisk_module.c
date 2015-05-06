@@ -9,10 +9,16 @@
 #include <linux/sched.h>
 #include <linux/wait.h>
 #include <linux/vmalloc.h>
+#include <linux/mutex.h>
 
+//#include "block.h"
+#include "constants.h"
 #include "file_operations.h"
+#include "inode.h"
 
 MODULE_LICENSE("GPL");
+
+static DEFINE_MUTEX(lock);
 
 /** PROCFS GLOBAL VARS **/
 static struct proc_dir_entry *proc_entry;
@@ -36,9 +42,9 @@ static int __init initialization_routine(void) {
     printk("<1> Error creating /proc entry.\n");
     return -ENOMEM;
   }
-  proc_entry->proc_fops = &pseudo_dev_proc_operations;
-  pseudo_dev_proc_operations.ioctl = pseudo_device_ioctl;
   
+  pseudo_dev_proc_operations.ioctl = pseudo_device_ioctl;
+  proc_entry->proc_fops = &pseudo_dev_proc_operations;
 	// Allocate RAMDISK memory area
 	if( (ramdisk_mem = vmalloc(PARTITION_SIZE)) == NULL){
     return -ENOMEM;
@@ -50,7 +56,7 @@ static int __init initialization_routine(void) {
   block_initialize(&ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)+NUM_BLOCKS/8],//blocks
                    &ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)], //bit-map ptr
                    super_block);
-
+  
   return 0;
 }
 
@@ -70,6 +76,7 @@ static void __exit cleanup_routine(void) {
 static int pseudo_device_ioctl(struct inode *inode, struct file *file,
                                unsigned int cmd, unsigned long arg)
 {
+  
   discos_arguments_t user_args;
   
   if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
@@ -78,31 +85,49 @@ static int pseudo_device_ioctl(struct inode *inode, struct file *file,
   
   switch (cmd){
   case IOCTL_CLOSE:
+    mutex_lock(&lock);
     user_args.arg_return = rd_close(user_args.arg_int_first);
+    mutex_unlock(&lock);
     break;
   case IOCTL_CREAT:
+    mutex_lock(&lock);
     user_args.arg_return = rd_creat(user_args.arg_char);
+    mutex_unlock(&lock);
     break;
   case IOCTL_LSEEK:
+    mutex_lock(&lock);
     user_args.arg_return = rd_lseek(user_args.arg_int_first, user_args.arg_int_second);
+    mutex_unlock(&lock);
     break;
   case IOCTL_MKDIR:
+    mutex_lock(&lock);
     user_args.arg_return = rd_mkdir(user_args.arg_char);
+    mutex_unlock(&lock);
     break;
   case IOCTL_OPEN:
+    mutex_lock(&lock);
     user_args.arg_return = rd_open(user_args.arg_char);
+    mutex_unlock(&lock);
     break;
   case IOCTL_READ:
+    mutex_lock(&lock);
     user_args.arg_return = rd_read(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
+    mutex_unlock(&lock);
     break;
   case IOCTL_READDIR:
+    mutex_lock(&lock);
     user_args.arg_return = rd_readdir(user_args.arg_int_first, user_args.arg_char);
+    mutex_unlock(&lock);
     break;
-  case IOCTL_UNLINK:
+  case IOCTL_UNLINK: 
+    mutex_lock(&lock);
     user_args.arg_return = rd_unlink(user_args.arg_char);
+    mutex_unlock(&lock);
     break;
   case IOCTL_WRITE:
+    mutex_lock(&lock);
     user_args.arg_return = rd_write(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
+    mutex_unlock(&lock);
     break;
   default:
     return -EINVAL;
@@ -113,8 +138,8 @@ static int pseudo_device_ioctl(struct inode *inode, struct file *file,
     return -EFAULT;
   
   return 0;
+  
 }
-
 
 module_init(initialization_routine);
 module_exit(cleanup_routine);
