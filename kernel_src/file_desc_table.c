@@ -19,11 +19,11 @@ uint16_t file_add_desc(uint16_t inode)
   file_desc* new_desc = malloc(sizeof(file_desc));
 #else
   file_desc* new_desc = vmalloc(sizeof(file_desc));
+  new_desc->pid = current->pid;
 #endif
   new_desc->fd = file_find_next_fd();
   new_desc->inode = inode;
   new_desc->f_pos = 0;
-  new_desc->pid = current->pid;
   new_desc->next = file_desc_table; //add to head
   file_desc_table = new_desc;
   return new_desc->fd;
