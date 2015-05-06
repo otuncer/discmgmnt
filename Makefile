@@ -15,6 +15,5 @@ demo:
 
 clean:
 	make -C /usr/src/linux-$(shell uname -r) SUBDIRS=$(PWD) clean
-	rm ramdisk_demo 
 	rmmod ramdisk_module
-	
+	rm ramdisk_demo 
