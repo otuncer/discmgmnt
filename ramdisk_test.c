@@ -2,7 +2,7 @@
    -- template test file for RAMDISK Filesystem Assignment.
    -- include a case for:
    -- two processes
-   -- largest number of files (should be 1024 max)
+   -- largest number of files (should be 1023 max)
    -- largest single file (start with direct blocks [2048 bytes max],
    then single-indirect [18432 bytes max] and finally double
    indirect [1067008 bytes max])
@@ -110,7 +110,7 @@ int main () {
 	       retval);
 
       if (i != MAX_FILES)
-	exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);
     }
 
     memset (pathname, 0, 80);

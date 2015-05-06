@@ -13,6 +13,7 @@ typedef struct _file_desc
   uint16_t fd;
   uint16_t inode;
   uint32_t f_pos;
+  uint32_t pid;
   struct _file_desc *next;
 } file_desc;
 
