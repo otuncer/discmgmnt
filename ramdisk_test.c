@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#include "../file_operations_wrappers.h"
+#include "file_operations_wrappers.h"
 
 // #define's to control what tests are performed,
 // comment out a test if you do not wish to perform it

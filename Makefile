@@ -1,18 +1,20 @@
 obj-m += ramdisk_module.o 
-ramdisk_module-objs := block.o \
-								file_desc_table.o \
-								file_operations.o \
-								inode.o 
+ramdisk_module-objs := 	kernel_src/ramdisk_module.o \
+												kernel_src/block.o \
+												kernel_src/file_desc_table.o \
+												kernel_src/file_operations.o \
+												kernel_src/inode.o 
 
 all:
 	make -C /usr/src/linux-$(shell uname -r) SUBDIRS=$(PWD) modules
 	insmod ramdisk_module.ko
 
 demo:
-	gcc -Wall -o ramdisk_demo testers/ramdisk_test.c file_operations_wrappers.c
+	gcc -Wall -o ramdisk_demo ramdisk_test.c file_operations_wrappers.c
 #	./ramdisk_demo
 
 clean:
 	make -C /usr/src/linux-$(shell uname -r) SUBDIRS=$(PWD) clean
+	rm ramdisk_demo 
 	rmmod ramdisk_module
 	

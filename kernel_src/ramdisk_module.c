@@ -10,10 +10,7 @@
 #include <linux/wait.h>
 #include <linux/vmalloc.h>
 
-#include "block.h"
-#include "constants.h"
 #include "file_operations.h"
-#include "inode.h"
 
 MODULE_LICENSE("GPL");
 
