@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #else
+#include <linux/sched.h>
 #include <linux/types.h>
 #include <linux/vmalloc.h>
 #endif
@@ -22,6 +23,7 @@ uint16_t file_add_desc(uint16_t inode)
   new_desc->fd = file_find_next_fd();
   new_desc->inode = inode;
   new_desc->f_pos = 0;
+  new_desc->pid = current->pid;
   new_desc->next = file_desc_table; //add to head
   file_desc_table = new_desc;
   return new_desc->fd;
