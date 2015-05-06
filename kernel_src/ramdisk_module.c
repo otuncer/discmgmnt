@@ -11,10 +11,7 @@
 #include <linux/vmalloc.h>
 #include <linux/mutex.h>
 
-//#include "block.h"
-#include "constants.h"
 #include "file_operations.h"
-#include "inode.h"
 
 MODULE_LICENSE("GPL");
 
@@ -76,69 +73,55 @@ static void __exit cleanup_routine(void) {
 static int pseudo_device_ioctl(struct inode *inode, struct file *file,
                                unsigned int cmd, unsigned long arg)
 {
-  
   discos_arguments_t user_args;
   
   if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
     return -EFAULT;
   }
   
+  mutex_lock(&lock);
+  
   switch (cmd){
   case IOCTL_CLOSE:
-    mutex_lock(&lock);
     user_args.arg_return = rd_close(user_args.arg_int_first);
-    mutex_unlock(&lock);
     break;
   case IOCTL_CREAT:
-    mutex_lock(&lock);
     user_args.arg_return = rd_creat(user_args.arg_char);
-    mutex_unlock(&lock);
     break;
   case IOCTL_LSEEK:
-    mutex_lock(&lock);
     user_args.arg_return = rd_lseek(user_args.arg_int_first, user_args.arg_int_second);
-    mutex_unlock(&lock);
     break;
   case IOCTL_MKDIR:
-    mutex_lock(&lock);
     user_args.arg_return = rd_mkdir(user_args.arg_char);
-    mutex_unlock(&lock);
     break;
   case IOCTL_OPEN:
-    mutex_lock(&lock);
     user_args.arg_return = rd_open(user_args.arg_char);
-    mutex_unlock(&lock);
     break;
   case IOCTL_READ:
-    mutex_lock(&lock);
     user_args.arg_return = rd_read(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
-    mutex_unlock(&lock);
     break;
   case IOCTL_READDIR:
-    mutex_lock(&lock);
     user_args.arg_return = rd_readdir(user_args.arg_int_first, user_args.arg_char);
-    mutex_unlock(&lock);
     break;
   case IOCTL_UNLINK: 
-    mutex_lock(&lock);
     user_args.arg_return = rd_unlink(user_args.arg_char);
-    mutex_unlock(&lock);
     break;
   case IOCTL_WRITE:
-    mutex_lock(&lock);
     user_args.arg_return = rd_write(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
-    mutex_unlock(&lock);
     break;
   default:
+    mutex_unlock(&lock);
     return -EINVAL;
     break;
   }
   
-  if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
+  if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t))){
+    mutex_unlock(&lock);
     return -EFAULT;
+	}
   
+  mutex_unlock(&lock);
   return 0;
-  
 }
 
 module_init(initialization_routine);
