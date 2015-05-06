@@ -11,7 +11,7 @@ all:
 
 demo:
 	gcc -Wall -o ramdisk_demo ramdisk_test.c file_operations_wrappers.c
-#	./ramdisk_demo
+	./ramdisk_demo
 
 clean:
 	make -C /usr/src/linux-$(shell uname -r) SUBDIRS=$(PWD) clean
