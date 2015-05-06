@@ -12,6 +12,8 @@
 #include <linux/types.h>
 #endif
 
+inode_t* inode_head;
+
 /*
  * Set type="",
  * size=0

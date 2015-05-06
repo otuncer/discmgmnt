@@ -9,11 +9,11 @@
 #include <linux/sched.h>
 #include <linux/wait.h>
 #include <linux/vmalloc.h>
-#include "constants.h"
 
-//#include "block.h"
-//#include "file_operations.h"
-//#include "inode.h"
+#include "block.h"
+#include "constants.h"
+#include "file_operations.h"
+#include "inode.h"
 
 MODULE_LICENSE("GPL");
 
@@ -28,10 +28,6 @@ static int pseudo_device_ioctl(struct inode *inode, struct file *file,
 /***** RAMDISK GLOBAL VARS ******/
 
 char* ramdisk_mem;
-//inode_t* inode_head;
-//uint8_t* block_bitmap;
-//block_t* blocks;
-//super_block_t* super_block;
 
 /***** INIT MODULE ******/
 static int __init initialization_routine(void) {
@@ -47,17 +43,17 @@ static int __init initialization_routine(void) {
   pseudo_dev_proc_operations.ioctl = pseudo_device_ioctl;
   
 	// Allocate RAMDISK memory area
-	if( (ramdisk_mem = vmalloc(1)) == NULL){
+	if( (ramdisk_mem = vmalloc(PARTITION_SIZE)) == NULL){
     return -ENOMEM;
   }
-  #if 0
+
   //initialize global pointers
   super_block = (super_block_t*) &ramdisk_mem[0];
   inode_initialize(&ramdisk_mem[BLOCKSIZE], super_block);
   block_initialize(&ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)+NUM_BLOCKS/8],//blocks
                    &ramdisk_mem[BLOCKSIZE*(1+NUM_INODES/4)], //bit-map ptr
                    super_block);
-  #endif
+
   return 0;
 }
 
@@ -79,91 +75,45 @@ static int pseudo_device_ioctl(struct inode *inode, struct file *file,
 {
   discos_arguments_t user_args;
   
+  if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
+    return -EFAULT;
+  }
+  
   switch (cmd){
-
   case IOCTL_CLOSE:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_close(user_args.arg_int_first);
     break;
   case IOCTL_CREAT:
-    ;
-    //if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-    //  return -EFAULT;
-    //}
-    // Call corresponding function
-    //if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-    //  return -EFAULT;
-    printk(KERN_ALERT "In creat\n");
+    user_args.arg_return = rd_creat(user_args.arg_char);
     break;
   case IOCTL_LSEEK:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_lseek(user_args.arg_int_first, user_args.arg_int_second);
     break;
   case IOCTL_MKDIR:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_mkdir(user_args.arg_char);
     break;
   case IOCTL_OPEN:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_open(user_args.arg_char);
     break;
   case IOCTL_READ:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_read(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
     break;
   case IOCTL_READDIR:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
+    user_args.arg_return = rd_readdir(user_args.arg_int_first, user_args.arg_char);
     break;
   case IOCTL_UNLINK:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_unlink(user_args.arg_char);
     break;
   case IOCTL_WRITE:
-    ;
-    if(copy_from_user(&user_args, (discos_arguments_t*)arg, sizeof(discos_arguments_t))){
-      return -EFAULT;
-    }
-    // Call corresponding function
-    if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
-      return -EFAULT;
+    user_args.arg_return = rd_write(user_args.arg_int_first, user_args.arg_char, user_args.arg_int_second);
     break;
   default:
     return -EINVAL;
     break;
   }
+  
+  if(copy_to_user((discos_arguments_t*)arg, &user_args, sizeof(discos_arguments_t)))
+    return -EFAULT;
   
   return 0;
 }

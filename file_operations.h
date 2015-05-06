@@ -23,12 +23,12 @@ int rd_close(int fd);
 //read up to num_bytes from regular file identified by fd
 //returns number of bytes actually read, 
 //  or -1 if fd does not exist or refers to a directory
-int rd_read(int d, char* buffer, int num_bytes);
+int rd_read(int fd, char* buffer, int num_bytes);
 
 //write up to num_bytes to regular file identified by fd
 //returns number of bytes actually written, 
 //  or -1 if fd does not exist or refers to a directory
-int rd_write(int d, char* buffer, int num_bytes);
+int rd_write(int fd, char* buffer, int num_bytes);
 
 //set file's position identified by file descriptor.
 //returns new position, or the end of the file position if offset > size

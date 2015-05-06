@@ -9,6 +9,8 @@
 #include <linux/vmalloc.h>
 #endif
 
+file_desc* file_desc_table;
+
 uint16_t file_add_desc(uint16_t inode)
 {
   //create new descriptor

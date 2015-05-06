@@ -1,12 +1,12 @@
 obj-m += ramdisk_module.o 
-#ramdisk-objs := block.o \
-#								file_desc_table.o \
-#								file_operations.o \
-#								inode.o 
+ramdisk_module-objs := block.o \
+								file_desc_table.o \
+								file_operations.o \
+								inode.o 
 
 all:
 	make -C /usr/src/linux-$(shell uname -r) SUBDIRS=$(PWD) modules
-	insmod ramdisk_module.ko
+#	insmod ramdisk_module.ko
 
 #demo:
 #	$(CC) -Wl,-wrap,getchar -o keyboard_demo keyboard_test.c

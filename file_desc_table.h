@@ -16,7 +16,7 @@ typedef struct _file_desc
   struct _file_desc *next;
 } file_desc;
 
-file_desc* file_desc_table;
+extern file_desc* file_desc_table;
 
 //returns fd
 uint16_t file_add_desc(uint16_t inode);
@@ -33,6 +33,6 @@ file_desc* file_get_fd(uint16_t fd);
 bool file_is_open(uint16_t inode);
 
 //returns next available fd index
-static uint16_t file_find_next_fd(void);
+uint16_t file_find_next_fd(void);
 
 #endif
