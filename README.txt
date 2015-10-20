@@ -1,12 +1,5 @@
-CS552 - Operating Systems
-DISCOS Assignment
-
-/** TEAM MEMBERS **/
-Ozan Tuncer, otuncer@bu.edu
-Onur Sahin, sahin@bu.edu
-
 /** Overview **/
-In our ramdisk file system, we chose to follow the Linux kernel implementation approach. The details of the ioctl calls are hidden from the user by the wrapper functions listed under file_operations_wrappers.h. The file system can be utilized by including this header file and kernel_src/constants.h, which defines the ramdisk constants. The user-level program can than directly issue the rd_creat, rd_open etc. functions as listed in the assignment.
+In our ramdisk file system, the details of the ioctl calls are hidden from the user by the wrapper functions listed under file_operations_wrappers.h. The file system can be utilized by including this header file and kernel_src/constants.h, which defines the ramdisk constants. The user-level program can than directly issue the rd_creat, rd_open etc. functions as listed in the assignment.
 
 /** HOW TO BUILD **/
 The ramdisk kernel module can be built by issuing "make". The Makefile automatically inserts the kernel module into the system and removes it back after issuing a "make clean" command. The kernel level source files are located under the kernel_src directory.
